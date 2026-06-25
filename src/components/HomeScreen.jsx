@@ -35,7 +35,7 @@ const styles = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   },
   header: {
-    background: '#1F3864',
+    background: 'rgb(45,110,181)',
     color: '#fff',
     padding: '14px 20px',
     display: 'flex',
@@ -72,6 +72,6 @@ const styles = {
     minHeight: 'calc(100vh - 68px)',
     gap: '8px',
   },
-  greeting: { fontSize: '28px', color: '#1F3864', fontWeight: '700', margin: 0 },
+  greeting: { fontSize: '28px', color: 'rgb(45,110,181)', fontWeight: '700', margin: 0 },
   sub: { fontSize: '15px', color: '#888', margin: 0 },
 }

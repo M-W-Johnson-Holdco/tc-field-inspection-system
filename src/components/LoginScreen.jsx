@@ -60,7 +60,7 @@ const styles = {
     width: '64px',
     height: '64px',
     borderRadius: '16px',
-    background: '#1F3864',
+    background: 'rgb(45,110,181)',
     color: '#fff',
     fontSize: '24px',
     fontWeight: '800',
@@ -72,7 +72,7 @@ const styles = {
   title: {
     fontSize: '18px',
     fontWeight: '700',
-    color: '#1F3864',
+    color: 'rgb(45,110,181)',
     margin: 0,
     textAlign: 'center',
   },

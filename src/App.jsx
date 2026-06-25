@@ -1,7 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginScreen from './components/LoginScreen'
-import HomeScreen from './components/HomeScreen'
+import AppShell from './components/AppShell'
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
@@ -18,7 +18,7 @@ function AppRoutes() {
       />
       <Route
         path="/"
-        element={<ProtectedRoute><HomeScreen /></ProtectedRoute>}
+        element={<ProtectedRoute><AppShell /></ProtectedRoute>}
       />
     </Routes>
   )
@@ -26,10 +26,19 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <HashRouter>
-        <AppRoutes />
-      </HashRouter>
-    </AuthProvider>
+    <>
+      <div className="orientation-lock" role="alert" aria-live="polite">
+        <div className="orientation-lock__card">
+          <div className="orientation-lock__mark">TC</div>
+          <h2>Rotate Back to Portrait</h2>
+          <p>This field app is designed for portrait mode on phones.</p>
+        </div>
+      </div>
+      <AuthProvider>
+        <HashRouter>
+          <AppRoutes />
+        </HashRouter>
+      </AuthProvider>
+    </>
   )
 }
