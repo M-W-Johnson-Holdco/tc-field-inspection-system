@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginScreen from './components/LoginScreen'
@@ -25,6 +26,25 @@ function AppRoutes() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const savedY = Number(sessionStorage.getItem('tcScrollY') || 0)
+    if (savedY > 0) {
+      setTimeout(() => window.scrollTo(0, savedY), 80)
+    }
+
+    function saveScroll() {
+      sessionStorage.setItem('tcScrollY', String(window.scrollY))
+    }
+
+    window.addEventListener('scroll', saveScroll, { passive: true })
+    window.addEventListener('beforeunload', saveScroll)
+
+    return () => {
+      window.removeEventListener('scroll', saveScroll)
+      window.removeEventListener('beforeunload', saveScroll)
+    }
+  }, [])
+
   return (
     <>
       <div className="orientation-lock" role="alert" aria-live="polite">

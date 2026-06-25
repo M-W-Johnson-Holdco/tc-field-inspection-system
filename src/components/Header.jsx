@@ -1,40 +1,75 @@
+import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useInspection } from '../context/InspectionContext'
+import { ChevronDown } from 'lucide-react'
 
 export default function Header() {
   const { user, logout } = useAuth()
-  const { saveStatus } = useInspection()
+  const { saveStatus, completion } = useInspection()
+  const [isOpen, setIsOpen] = useState(true)
 
   const saveLabel = {
-    saved: 'All changes saved',
-    saving: 'Saving...',
-    unsaved: 'Unsaved changes',
+    saved: 'Saved',
+    saving: 'Saving',
+    unsaved: 'Unsaved',
   }[saveStatus]
 
   return (
-    <div className="app-header">
-      <div className="app-header__brand">
-        <div className="app-header__logo">TC</div>
-        <div className="app-header__title-group">
-          <p className="section-eyebrow">Field Operations</p>
-          <h1 className="app-header__title">TC Roofing Field Inspection</h1>
-          <p className="app-header__subtitle">Pre-Adjuster Inspection &bull; Texas Hail &amp; Wind</p>
+    <details
+      className="app-header"
+      open={isOpen}
+      onToggle={e => setIsOpen(e.currentTarget.open)}
+    >
+      <summary className="app-header__summary">
+        <div className="app-header__progress app-header__progress--summary" aria-label={`Inspection ${completion.percent}% complete`}>
+          <div className="app-header__progress-top">
+            <span>Inspection Progress</span>
+            <strong>{completion.percent}%</strong>
+          </div>
+          <div className="app-header__progress-row">
+            <div className="app-header__progress-track">
+              <div className="app-header__progress-fill" style={{ width: `${completion.percent}%` }} />
+            </div>
+            <span className={`status-pill status-pill--compact ${saveStatus === 'unsaved' ? 'status-pill--unsaved' : ''}`}>
+              {saveLabel}
+            </span>
+          </div>
+        </div>
+        <ChevronDown className="app-header__summary-icon" aria-hidden="true" />
+      </summary>
+      <div className="app-header__details">
+        <div className="app-header__brand">
+          <div className="app-header__logo">TC</div>
+          <div className="app-header__title-group">
+            <p className="section-eyebrow">Field Operations</p>
+            <h1 className="app-header__title">TC Roofing Field Inspection</h1>
+            <p className="app-header__subtitle">Pre-Adjuster Inspection &bull; Texas Hail &amp; Wind</p>
+          </div>
+        </div>
+        <div className="app-header__progress app-header__progress--details" aria-label={`Inspection ${completion.percent}% complete`}>
+          <div className="app-header__progress-top">
+            <span>Inspection Progress</span>
+            <strong>{completion.percent}%</strong>
+          </div>
+          <div className="app-header__progress-row">
+            <div className="app-header__progress-track">
+              <div className="app-header__progress-fill" style={{ width: `${completion.percent}%` }} />
+            </div>
+            <span className={`status-pill status-pill--compact ${saveStatus === 'unsaved' ? 'status-pill--unsaved' : ''}`}>
+              {saveLabel}
+            </span>
+          </div>
+        </div>
+        <div className="app-header__user">
+          {user?.picture && (
+            <img className="app-header__avatar" src={user.picture} alt="" referrerPolicy="no-referrer" />
+          )}
+          <div>
+            <p className="app-header__user-name">{user?.name}</p>
+            <button className="link-button" onClick={logout}>Sign out</button>
+          </div>
         </div>
       </div>
-      <div className="app-header__meta">
-        <span className={`status-pill ${saveStatus === 'unsaved' ? 'status-pill--unsaved' : ''}`}>
-          {saveLabel}
-        </span>
-      </div>
-      <div className="app-header__user">
-        {user?.picture && (
-          <img className="app-header__avatar" src={user.picture} alt="" referrerPolicy="no-referrer" />
-        )}
-        <div>
-          <p className="app-header__user-name">{user?.name}</p>
-          <button className="link-button" onClick={logout}>Sign out</button>
-        </div>
-      </div>
-    </div>
+    </details>
   )
 }

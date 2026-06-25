@@ -126,7 +126,7 @@ function FieldRenderer({ field, value, onChange }) {
             min="0"
             step="1"
             value={value || ''}
-            placeholder={p || ''}
+            placeholder={p || '0'}
             onChange={e => onChange(e.target.value)}
           />
           <button
@@ -337,13 +337,15 @@ function SubSectionCard({ title, items, trigPhoto, defaultOpen = false }) {
         <span className="section-eyebrow ri-card__eyebrow">{title}</span>
         <ChevronDown className="ri-card__chevron" aria-hidden="true" />
       </button>
-      {isOpen && (
-        <div className="ri-card__content">
-          {items.map(item => (
-            <CheckItem key={item.id} itemDef={item} trigPhoto={trigPhoto} />
-          ))}
+      <div className={`collapse-panel ${isOpen ? 'collapse-panel--open' : ''}`} aria-hidden={!isOpen}>
+        <div className="collapse-panel__inner">
+          <div className="ri-card__content">
+            {items.map(item => (
+              <CheckItem key={item.id} itemDef={item} trigPhoto={trigPhoto} />
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </section>
   )
 }

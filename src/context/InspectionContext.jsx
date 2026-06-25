@@ -24,6 +24,7 @@ const INITIAL_STATE = {
     date: new Date().toISOString().slice(0, 10),
     preferredContact: [],
     residenceType: 'Primary',
+    addrParts: { address1: '', address2: '', city: '', state: '', zipcode: '' },
     tenantname: '', tenantphone: '',
   },
   roofData: INITIAL_ROOF_DATA,
@@ -31,9 +32,91 @@ const INITIAL_STATE = {
   interiorData: INITIAL_INTERIOR_DATA,
 }
 
+function isFilled(value) {
+  if (Array.isArray(value)) return value.length > 0
+  if (value == null) return false
+  const normalized = String(value).trim()
+  return normalized !== '' && normalized !== 'Select...' && normalized !== 'Select…'
+}
+
+function isValidPhone(value) {
+  return String(value || '').replace(/\D/g, '').length === 10
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim())
+}
+
+function isValidAddressParts(parts) {
+  return Boolean(
+    parts &&
+    String(parts.address1 || '').trim() &&
+    String(parts.city || '').trim() &&
+    /^[A-Z]{2}$/i.test(String(parts.state || '').trim()) &&
+    /^\d{5}$/.test(String(parts.zipcode || '').trim())
+  )
+}
+
+function countValue(value, totals, validator) {
+  totals.total += 1
+  if (validator ? validator(value) : isFilled(value)) totals.filled += 1
+}
+
+function calculateCompletion(data) {
+  const totals = { filled: 0, total: 0 }
+  const ji = data.jobInfo || {}
+
+  ;['cust', 'preferredContact', 'residenceType', 'pm', 'insp', 'ins', 'claim', 'date'].forEach(key => {
+    countValue(ji[key], totals)
+  })
+  countValue(ji.phone, totals, isValidPhone)
+  countValue(ji.email, totals, isValidEmail)
+  countValue(ji.addrParts, totals, isValidAddressParts)
+  if (ji.residenceType === 'Rental') {
+    countValue(ji.tenantname, totals)
+    countValue(ji.tenantphone, totals, isValidPhone)
+  }
+
+  ROOF_ITEMS.forEach(itemDef => {
+    const item = data.roofData?.[itemDef.id]
+    if (!item || item.excluded) return
+
+    ;(itemDef.fields || []).forEach(field => countValue(item.fields?.[field.l], totals))
+    if (itemDef.flags?.includes('D')) countValue(item.fields?._damage, totals)
+    ;(item.subItems || []).forEach(sub => {
+      ;(itemDef.subFields || []).forEach(field => countValue(sub.fields?.[field.l], totals))
+    })
+  })
+
+  ELEV_ITEMS.forEach(itemDef => {
+    DIRECTIONS.forEach(dir => {
+      const cell = data.elevData?.[`${itemDef.id}_${dir}`]
+      if (!cell || cell.excluded) return
+
+      ;(itemDef.fields || []).forEach(field => countValue(cell.fields?.[field.l], totals))
+      if (cell.fields?.Damaged === 'Yes') countValue(cell.fields?._damage, totals)
+    })
+  })
+
+  ;(data.interiorData?.rooms || []).forEach(room => {
+    countValue(room.name, totals)
+    if (room.name === 'Other') countValue(room.customName, totals)
+    ;['story', 'ceilingDamage', 'wallDamage', 'floorDamage', 'moldPresent'].forEach(key => {
+      countValue(room.fields?.[key], totals)
+    })
+    if (room.fields?.ceilingDamage === 'Yes') countValue(room.fields?.ceilingNotes, totals)
+    if (room.fields?.wallDamage === 'Yes') countValue(room.fields?.wallNotes, totals)
+    if (room.fields?.floorDamage === 'Yes') countValue(room.fields?.floorNotes, totals)
+    if (room.fields?.moldPresent === 'Yes') countValue(room.fields?.moldNotes, totals)
+  })
+
+  const percent = totals.total ? Math.round((totals.filled / totals.total) * 100) : 0
+  return { ...totals, percent }
+}
+
 export function InspectionProvider({ children }) {
   const [data, setData] = useState(INITIAL_STATE)
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTabState] = useState(0)
   const [saveStatus, setSaveStatus] = useState('saved')
   const saveTimer = useRef(null)
 
@@ -50,6 +133,7 @@ export function InspectionProvider({ children }) {
           elevData: { ...INITIAL_ELEV_DATA, ...(saved.elevData || {}) },
           interiorData: saved.interiorData || INITIAL_INTERIOR_DATA,
         })
+        if (Number.isInteger(saved.activeTab)) setActiveTabState(saved.activeTab)
       }
     }).catch(() => {})
   }, [])
@@ -59,10 +143,18 @@ export function InspectionProvider({ children }) {
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
       setSaveStatus('saving')
-      idbSave('current', newData)
+      idbSave('current', { ...newData, activeTab })
         .then(() => setSaveStatus('saved'))
         .catch(() => setSaveStatus('unsaved'))
     }, 3000)
+  }
+
+  function setActiveTab(nextTab) {
+    setActiveTabState(prev => {
+      const resolved = typeof nextTab === 'function' ? nextTab(prev) : nextTab
+      idbSave('current', { ...data, activeTab: resolved }).catch(() => {})
+      return resolved
+    })
   }
 
   function updateJobInfo(field, value) {
@@ -248,7 +340,7 @@ export function InspectionProvider({ children }) {
 
   function manualSave() {
     setSaveStatus('saving')
-    idbSave('current', data)
+    idbSave('current', { ...data, activeTab })
       .then(() => setSaveStatus('saved'))
       .catch(() => setSaveStatus('unsaved'))
   }
@@ -256,14 +348,17 @@ export function InspectionProvider({ children }) {
   function resetAll() {
     if (!confirm('Reset all data? This cannot be undone.')) return
     setData(INITIAL_STATE)
-    idbSave('current', INITIAL_STATE)
+    setActiveTabState(0)
+    idbSave('current', { ...INITIAL_STATE, activeTab: 0 })
     setSaveStatus('saved')
   }
+
+  const completion = calculateCompletion(data)
 
   return (
     <InspectionContext.Provider value={{
       data, activeTab, setActiveTab,
-      saveStatus, updateJobInfo, manualSave, resetAll,
+      saveStatus, completion, updateJobInfo, manualSave, resetAll,
       toggleRoofExclude, updateRoofField,
       addRoofSubItem, removeRoofSubItem, updateRoofSubField,
       addRoofPhoto, removeRoofPhoto,

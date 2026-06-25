@@ -5,13 +5,15 @@ import ActionBar from './ActionBar'
 import JobInfo from './sections/JobInfo'
 import RoofSection from './sections/RoofSection'
 import ElevationsSection from './sections/ElevationsSection'
+import InteriorSection from './sections/InteriorSection'
 
-const COMING_SOON_LABELS = ['', '', 'Interior Damage', 'Exterior Property', 'Notes', 'AI Parse']
+const COMING_SOON_LABELS = ['', '', '', 'Exterior Property', 'Notes', 'AI Parse']
 
 function PanelContent() {
   const { activeTab } = useInspection()
   if (activeTab === 0) return <RoofSection />
   if (activeTab === 1) return <ElevationsSection />
+  if (activeTab === 2) return <InteriorSection />
   return (
     <div className="coming-soon app-card">
       <p className="section-eyebrow">Inspection Workspace</p>
