@@ -323,8 +323,8 @@ function CheckItem({ itemDef, trigPhoto }) {
 }
 
 // ── Sub-section Card ──────────────────────────────────────────────
-function SubSectionCard({ title, items, trigPhoto, defaultOpen = false }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen)
+function SubSectionCard({ title, items, trigPhoto }) {
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <section className={`app-card ri-card${isOpen ? ' ri-card--open' : ''}`}>
@@ -402,13 +402,12 @@ export default function RoofSection() {
         style={{ display: 'none' }}
         onChange={handleFiles}
       />
-      {subsections.map(({ title, items }, index) => (
+      {subsections.map(({ title, items }) => (
         <SubSectionCard
           key={title}
           title={title}
           items={items}
           trigPhoto={trigPhoto}
-          defaultOpen={index === 0}
         />
       ))}
     </>

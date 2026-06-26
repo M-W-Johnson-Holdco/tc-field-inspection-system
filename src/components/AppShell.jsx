@@ -2,6 +2,7 @@ import { useInspection, InspectionProvider } from '../context/InspectionContext'
 import Header from './Header'
 import TabBar from './TabBar'
 import ActionBar from './ActionBar'
+import ReAuthModal from './ReAuthModal'
 import JobInfo from './sections/JobInfo'
 import RoofSection from './sections/RoofSection'
 import ElevationsSection from './sections/ElevationsSection'
@@ -11,16 +12,19 @@ const COMING_SOON_LABELS = ['', '', '', 'Exterior Property', 'Notes', 'AI Parse'
 
 function PanelContent() {
   const { activeTab } = useInspection()
-  if (activeTab === 0) return <RoofSection />
-  if (activeTab === 1) return <ElevationsSection />
-  if (activeTab === 2) return <InteriorSection />
-  return (
+  let content
+  if (activeTab === 0) content = <RoofSection />
+  else if (activeTab === 1) content = <ElevationsSection />
+  else if (activeTab === 2) content = <InteriorSection />
+  else content = (
     <div className="coming-soon app-card">
       <p className="section-eyebrow">Inspection Workspace</p>
       <p className="coming-soon__title">Section {activeTab + 1} — {COMING_SOON_LABELS[activeTab]}</p>
       <p className="coming-soon__sub">Coming soon</p>
     </div>
   )
+
+  return <section id="section-panel" className="section-panel">{content}</section>
 }
 
 function Shell() {
@@ -35,6 +39,7 @@ function Shell() {
         </main>
       </div>
       <ActionBar />
+      <ReAuthModal />
     </div>
   )
 }

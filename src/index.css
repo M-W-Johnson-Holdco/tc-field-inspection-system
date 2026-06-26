@@ -119,6 +119,12 @@ button:disabled {
   margin-top: 12px;
 }
 
+.section-panel {
+  display: grid;
+  gap: 12px;
+  scroll-margin-top: 112px;
+}
+
 .app-card {
   background: var(--card-bg);
   border: 1px solid rgba(148, 163, 184, 0.24);
@@ -157,6 +163,7 @@ button:disabled {
   gap: 8px;
   cursor: pointer;
   list-style: none;
+  transition: margin-top 0.32s ease;
 }
 
 .app-header__summary::-webkit-details-marker {
@@ -168,7 +175,7 @@ button:disabled {
   height: 18px;
   flex: 0 0 auto;
   color: var(--primary);
-  transition: transform 0.28s ease;
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .app-header[open] .app-header__summary-icon {
@@ -184,17 +191,25 @@ button:disabled {
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: max-height 0.34s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.24s ease, margin-top 0.24s ease;
+  transform: translateY(-8px);
+  transition:
+    max-height 0.58s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.38s ease,
+    margin-top 0.32s ease,
+    transform 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: max-height, opacity, transform;
 }
 
 .app-header[open] .app-header__details {
   max-height: 240px;
   opacity: 1;
+  transform: translateY(0);
 }
 
 .app-header[open] .app-header__summary {
   order: 2;
   margin-top: 10px;
+  transition: margin-top 0.32s ease;
 }
 
 .app-header[open] .app-header__details {
@@ -211,18 +226,10 @@ button:disabled {
 }
 
 .app-header__logo {
-  display: grid;
-  width: 40px;
-  height: 40px;
+  width: 120px;
+  height: auto;
   flex: 0 0 auto;
-  place-items: center;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff;
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-  box-shadow: 0 12px 24px rgba(45, 110, 181, 0.26);
+  object-fit: contain;
 }
 
 .app-header__title-group {
@@ -388,6 +395,34 @@ button:disabled {
   padding-bottom: 14px;
   margin-bottom: 14px;
   border-bottom: 1px solid var(--border);
+}
+
+.card-header--toggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.card-header__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header__chevron {
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
+  transition: transform 0.28s ease;
+}
+
+.card-header__chevron--open {
+  transform: rotate(180deg);
 }
 
 .card-title {
@@ -655,7 +690,7 @@ button:disabled {
   position: fixed;
   bottom: 10px;
   left: 50%;
-  z-index: 100;
+  z-index: 200;
   display: flex;
   width: auto;
   max-width: calc(100% - 20px);
@@ -727,10 +762,324 @@ button:disabled {
   color: #047857;
 }
 
+.app-button--export-done {
+  border: 1px solid #6ee7b7;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.app-button--export-error {
+  border: 1px solid #fca5a5;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.app-button--open {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.app-button--danger {
+  border: 1px solid #fca5a5;
+  background: #ef4444;
+  color: #fff;
+}
+
 .app-button--reset {
   border: 1px solid #fecaca;
   background: #fef2f2;
   color: var(--danger);
+}
+
+/* ─── Open Inspection Modal ─────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 1000;
+}
+
+.modal-backdrop--top {
+  z-index: 1020;
+}
+
+.modal-sheet {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(calc(100% - 24px), 680px);
+  max-height: min(84vh, 760px);
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 22px;
+  z-index: 1010;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.modal-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modal-sheet__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-sheet__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.modal-sheet__search-row {
+  position: relative;
+  padding: 10px 16px;
+  flex-shrink: 0;
+}
+
+.modal-sheet__search-icon {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.modal-sheet__search {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--field-bg);
+  color: var(--text);
+  outline: none;
+}
+
+.modal-sheet__search:focus {
+  border-color: var(--primary);
+}
+
+.modal-sheet__filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.modal-sheet__filter-group {
+  display: flex;
+  gap: 6px;
+}
+
+.modal-filter-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.modal-filter-chip--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.modal-sheet__select {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+
+.modal-sheet__list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 8px 16px;
+}
+
+.modal-sheet__state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.modal-sheet__state--error {
+  color: var(--danger);
+}
+
+.modal-inspection-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 10px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.modal-inspection-row:hover {
+  background: var(--primary-soft);
+}
+
+.modal-inspection-row__icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.modal-inspection-row__name {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.modal-inspection-row__loader {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.modal-load-more {
+  width: 100%;
+  min-height: 42px;
+  margin: 8px 0 0;
+  border: 1px solid rgba(45, 110, 181, 0.18);
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.modal-confirm {
+  position: fixed;
+  bottom: 50%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  z-index: 1030;
+  width: calc(100% - 40px);
+  max-width: 360px;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.18);
+}
+
+.modal-confirm__msg {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.modal-confirm__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-confirm__actions .app-button {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ─── Re-Auth Modal ─────────────────────────────────────────────── */
+
+.reauth-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px;
+  z-index: 210;
+  width: calc(100% - 40px);
+  max-width: 340px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.reauth-modal__icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.reauth-modal__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.reauth-modal__msg {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.reauth-modal__btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  background: #fff;
+  color: #3c4043;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 4px;
+  width: 100%;
+  justify-content: center;
+}
+
+.reauth-modal__btn:hover {
+  background: #f8f9fa;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
 }
 
 /* ─── Roof Section ─────────────────────────────────────────────── */
@@ -1596,10 +1945,7 @@ button:disabled {
   }
 
   .app-header__logo {
-    width: 46px;
-    height: 46px;
-    border-radius: 16px;
-    font-size: 16px;
+    width: 140px;
   }
 
   .app-header__title {

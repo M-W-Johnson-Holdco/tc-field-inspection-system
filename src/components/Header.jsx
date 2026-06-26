@@ -2,17 +2,21 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useInspection } from '../context/InspectionContext'
 import { ChevronDown } from 'lucide-react'
+import tcLogo from '../assets/tc_logo.png'
 
 export default function Header() {
   const { user, logout } = useAuth()
-  const { saveStatus, completion } = useInspection()
+  const { driveSaveStatus, completion } = useInspection()
   const [isOpen, setIsOpen] = useState(true)
 
   const saveLabel = {
     saved: 'Saved',
     saving: 'Saving',
     unsaved: 'Unsaved',
-  }[saveStatus]
+    error: 'Failed',
+  }[driveSaveStatus]
+
+  const isUnsaved = driveSaveStatus === 'unsaved' || driveSaveStatus === 'error'
 
   return (
     <details
@@ -30,7 +34,7 @@ export default function Header() {
             <div className="app-header__progress-track">
               <div className="app-header__progress-fill" style={{ width: `${completion.percent}%` }} />
             </div>
-            <span className={`status-pill status-pill--compact ${saveStatus === 'unsaved' ? 'status-pill--unsaved' : ''}`}>
+            <span className={`status-pill status-pill--compact ${isUnsaved ? 'status-pill--unsaved' : ''}`}>
               {saveLabel}
             </span>
           </div>
@@ -39,7 +43,7 @@ export default function Header() {
       </summary>
       <div className="app-header__details">
         <div className="app-header__brand">
-          <div className="app-header__logo">TC</div>
+          <img src={tcLogo} alt="TC Roofing & Restorations" className="app-header__logo" />
           <div className="app-header__title-group">
             <p className="section-eyebrow">Field Operations</p>
             <h1 className="app-header__title">TC Roofing Field Inspection</h1>
@@ -55,7 +59,7 @@ export default function Header() {
             <div className="app-header__progress-track">
               <div className="app-header__progress-fill" style={{ width: `${completion.percent}%` }} />
             </div>
-            <span className={`status-pill status-pill--compact ${saveStatus === 'unsaved' ? 'status-pill--unsaved' : ''}`}>
+            <span className={`status-pill status-pill--compact ${isUnsaved ? 'status-pill--unsaved' : ''}`}>
               {saveLabel}
             </span>
           </div>

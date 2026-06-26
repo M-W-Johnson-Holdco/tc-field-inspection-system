@@ -118,6 +118,7 @@ export function InspectionProvider({ children }) {
   const [data, setData] = useState(INITIAL_STATE)
   const [activeTab, setActiveTabState] = useState(0)
   const [saveStatus, setSaveStatus] = useState('saved')
+  const [driveSaveStatus, setDriveSaveStatus] = useState('unsaved')
   const saveTimer = useRef(null)
 
   useEffect(() => {
@@ -140,6 +141,7 @@ export function InspectionProvider({ children }) {
 
   function scheduleSave(newData) {
     setSaveStatus('unsaved')
+    setDriveSaveStatus('unsaved')
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
       setSaveStatus('saving')
@@ -345,12 +347,31 @@ export function InspectionProvider({ children }) {
       .catch(() => setSaveStatus('unsaved'))
   }
 
+  function loadInspection(saved) {
+    const jobInfo = { ...INITIAL_STATE.jobInfo, ...(saved.jobInfo || {}) }
+    if (!jobInfo.residenceType) jobInfo.residenceType = 'Primary'
+    const next = {
+      ...INITIAL_STATE,
+      ...saved,
+      jobInfo,
+      roofData: { ...INITIAL_ROOF_DATA, ...(saved.roofData || {}) },
+      elevData: { ...INITIAL_ELEV_DATA, ...(saved.elevData || {}) },
+      interiorData: saved.interiorData || INITIAL_INTERIOR_DATA,
+    }
+    setData(next)
+    setActiveTabState(0)
+    idbSave('current', { ...next, activeTab: 0 })
+    setSaveStatus('saved')
+    setDriveSaveStatus('saved')
+  }
+
   function resetAll() {
     if (!confirm('Reset all data? This cannot be undone.')) return
     setData(INITIAL_STATE)
     setActiveTabState(0)
     idbSave('current', { ...INITIAL_STATE, activeTab: 0 })
     setSaveStatus('saved')
+    setDriveSaveStatus('unsaved')
   }
 
   const completion = calculateCompletion(data)
@@ -358,7 +379,7 @@ export function InspectionProvider({ children }) {
   return (
     <InspectionContext.Provider value={{
       data, activeTab, setActiveTab,
-      saveStatus, completion, updateJobInfo, manualSave, resetAll,
+      saveStatus, driveSaveStatus, setDriveSaveStatus, completion, updateJobInfo, manualSave, resetAll, loadInspection,
       toggleRoofExclude, updateRoofField,
       addRoofSubItem, removeRoofSubItem, updateRoofSubField,
       addRoofPhoto, removeRoofPhoto,

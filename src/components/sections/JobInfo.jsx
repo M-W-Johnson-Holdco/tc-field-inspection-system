@@ -45,6 +45,7 @@ export default function JobInfo() {
   const [addressOpen, setAddressOpen] = useState(false)
   const [addressDraft, setAddressDraft] = useState({ ...EMPTY_ADDRESS, ...(ji.addrParts || {}) })
   const [addressTouched, setAddressTouched] = useState(false)
+  const [isOpen, setIsOpen] = useState(true)
 
   function field(id, label, props = {}) {
     const { full, validation, ...inputProps } = props
@@ -129,85 +130,96 @@ export default function JobInfo() {
   const addressCanComplete = !hasAddressErrors(addressErrors)
 
   return (
-    <section className="job-card app-card">
-      <div className="card-header">
+    <section className={`job-card app-card ${isOpen ? 'job-card--open' : ''}`}>
+      <button
+        type="button"
+        className="card-header card-header--toggle"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen(open => !open)}
+      >
         <div>
           <p className="section-eyebrow">Inspection Setup</p>
           <h2 className="card-title">Job Information</h2>
           <p className="card-subtitle">Customer, claim, contact, and assignment details.</p>
         </div>
-        <span className="status-pill">Draft</span>
-      </div>
-      <div className="form-grid">
-        {field('cust', 'Customer Name(s)', { full: true, placeholder: 'John & Jane Smith' })}
-        {field('phone', 'Customer Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0100', validation: 'phone' })}
-        {field('email', 'Customer Email', { type: 'email', placeholder: 'john@email.com', validation: 'email' })}
-
-        <div className="form-field form-field--full">
-          <label className="form-label">Preferred Contact Method</label>
-          <details className="multi-select">
-            <summary className="multi-select__summary">
-              <span>{(ji.preferredContact || []).length ? ji.preferredContact.join(', ') : 'Select...'}</span>
-              <ChevronDown className="multi-select__icon" aria-hidden="true" />
-            </summary>
-            <div className="multi-select__menu">
-              {CONTACT_OPTIONS.map(opt => (
-                <label key={opt} className="multi-select__option">
-                  <input
-                    type="checkbox"
-                    checked={(ji.preferredContact || []).includes(opt)}
-                    onChange={() => toggleContact(opt)}
-                  />
-                  {opt}
-                </label>
-              ))}
-            </div>
-          </details>
-          {(ji.preferredContact || []).length > 0 && (
-            <div className="multi-select__selected" aria-label="Selected preferred contact methods">
-              {ji.preferredContact.map(opt => (
-                <span key={opt} className="multi-select__chip">{opt}</span>
-              ))}
-            </div>
-          )}
+        <div className="card-header__actions">
+          <ChevronDown className={`card-header__chevron ${isOpen ? 'card-header__chevron--open' : ''}`} aria-hidden="true" />
         </div>
+      </button>
+      <div className={`collapse-panel ${isOpen ? 'collapse-panel--open' : ''}`} aria-hidden={!isOpen}>
+        <div className="collapse-panel__inner">
+          <div className="form-grid">
+            {field('cust', 'Customer Name(s)', { full: true, placeholder: 'John & Jane Smith' })}
+            {field('phone', 'Customer Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0100', validation: 'phone' })}
+            {field('email', 'Customer Email', { type: 'email', placeholder: 'john@email.com', validation: 'email' })}
 
-        <div className="form-field form-field--full">
-          <label className="form-label">Residence Type</label>
-          <div className="pill-row">
-            {['Primary', 'Rental'].map(val => (
-              <div
-                key={val}
-                className={`select-pill ${ji.residenceType === val ? 'select-pill--active' : ''}`}
-                onClick={() => setResidence(val)}
-              >
-                {val === 'Primary' ? 'Primary Residence' : 'Rental Property'}
+            <div className="form-field form-field--full">
+              <label className="form-label">Preferred Contact Method</label>
+              <details className="multi-select">
+                <summary className="multi-select__summary">
+                  <span>{(ji.preferredContact || []).length ? ji.preferredContact.join(', ') : 'Select...'}</span>
+                  <ChevronDown className="multi-select__icon" aria-hidden="true" />
+                </summary>
+                <div className="multi-select__menu">
+                  {CONTACT_OPTIONS.map(opt => (
+                    <label key={opt} className="multi-select__option">
+                      <input
+                        type="checkbox"
+                        checked={(ji.preferredContact || []).includes(opt)}
+                        onChange={() => toggleContact(opt)}
+                      />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+              </details>
+              {(ji.preferredContact || []).length > 0 && (
+                <div className="multi-select__selected" aria-label="Selected preferred contact methods">
+                  {ji.preferredContact.map(opt => (
+                    <span key={opt} className="multi-select__chip">{opt}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="form-field form-field--full">
+              <label className="form-label">Residence Type</label>
+              <div className="pill-row">
+                {['Primary', 'Rental'].map(val => (
+                  <div
+                    key={val}
+                    className={`select-pill ${ji.residenceType === val ? 'select-pill--active' : ''}`}
+                    onClick={() => setResidence(val)}
+                  >
+                    {val === 'Primary' ? 'Primary Residence' : 'Rental Property'}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div className="form-field form-field--full">
+              <label className="form-label">Property Address <span className="required-star">*</span></label>
+              <button
+                type="button"
+                className={`address-trigger ${ji.addr ? '' : 'address-trigger--empty'}`}
+                onClick={openAddressPopup}
+              >
+                {ji.addr || 'Tap to enter property address'}
+              </button>
+            </div>
+            {ji.residenceType === 'Rental' && (
+              <>
+                {field('tenantname', 'Tenant Name', { placeholder: 'Tenant full name' })}
+                {field('tenantphone', 'Tenant Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0101', validation: 'phone' })}
+              </>
+            )}
+            {field('pm', 'Project Manager', { placeholder: 'Name' })}
+            {field('insp', 'Inspector / Rep', { placeholder: 'Name' })}
+            {field('ins', 'Insurance Co', { placeholder: 'State Farm' })}
+            {field('claim', 'Claim #', { placeholder: 'Pending if not filed' })}
+            {field('date', 'Date', { type: 'date' })}
           </div>
         </div>
-
-        <div className="form-field form-field--full">
-          <label className="form-label">Property Address <span className="required-star">*</span></label>
-          <button
-            type="button"
-            className={`address-trigger ${ji.addr ? '' : 'address-trigger--empty'}`}
-            onClick={openAddressPopup}
-          >
-            {ji.addr || 'Tap to enter property address'}
-          </button>
-        </div>
-        {ji.residenceType === 'Rental' && (
-          <>
-            {field('tenantname', 'Tenant Name', { placeholder: 'Tenant full name' })}
-            {field('tenantphone', 'Tenant Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0101', validation: 'phone' })}
-          </>
-        )}
-        {field('pm', 'Project Manager', { placeholder: 'Name' })}
-        {field('insp', 'Inspector / Rep', { placeholder: 'Name' })}
-        {field('ins', 'Insurance Co', { placeholder: 'State Farm' })}
-        {field('claim', 'Claim #', { placeholder: 'Pending if not filed' })}
-        {field('date', 'Date', { type: 'date' })}
       </div>
 
       {addressOpen && (
