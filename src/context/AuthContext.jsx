@@ -3,7 +3,7 @@ import { useGoogleLogin } from '@react-oauth/google'
 
 const AuthContext = createContext(null)
 
-const ALLOWED_DOMAIN = 'tcroofingexperts.com'
+const ALLOWED_DOMAINS = ['tcroofingexperts.com', 'peachtreerestorations.com']
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive'
 
 export function AuthProvider({ children }) {
@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
     })
     if (!res.ok) throw new Error('Failed to fetch user info')
     const userInfo = await res.json()
-    if (!userInfo.email.endsWith('@' + ALLOWED_DOMAIN)) {
+    if (!ALLOWED_DOMAINS.some(d => userInfo.email.endsWith('@' + d))) {
       return { error: 'This Google account is not authorized. Contact your administrator.' }
     }
     const userData = {
@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
   }
 
   function login(userInfo, token) {
-    if (!userInfo.email.endsWith('@' + ALLOWED_DOMAIN)) {
+    if (!ALLOWED_DOMAINS.some(d => userInfo.email.endsWith('@' + d))) {
       return { error: 'This Google account is not authorized. Contact your administrator.' }
     }
     const userData = {
