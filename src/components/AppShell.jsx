@@ -9,8 +9,7 @@ import ElevationsSection from './sections/ElevationsSection'
 import InteriorSection from './sections/InteriorSection'
 import ExteriorSection from './sections/ExteriorSection'
 import NotesSection from './sections/NotesSection'
-
-const COMING_SOON_LABELS = ['', '', '', '', '', 'AI Parse']
+import AIParseSection from './sections/AIParseSection'
 
 function PanelContent() {
   const { activeTab } = useInspection()
@@ -20,10 +19,10 @@ function PanelContent() {
   else if (activeTab === 2) content = <InteriorSection />
   else if (activeTab === 3) content = <ExteriorSection />
   else if (activeTab === 4) content = <NotesSection />
+  else if (activeTab === 5) content = <AIParseSection />
   else content = (
     <div className="coming-soon app-card">
       <p className="section-eyebrow">Inspection Workspace</p>
-      <p className="coming-soon__title">Section {activeTab + 1} — {COMING_SOON_LABELS[activeTab]}</p>
       <p className="coming-soon__sub">Coming soon</p>
     </div>
   )
