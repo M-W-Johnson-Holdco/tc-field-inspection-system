@@ -2,30 +2,37 @@ interface Env {
 	ANTHROPIC_API_KEY: string
 }
 
-const ALLOWED_ORIGIN = 'https://peachtreeroofing.github.io'
+const ALLOWED_ORIGINS = new Set([
+	'https://m-w-johnson-holdco.github.io',
+])
 
-const CORS_HEADERS = {
-	'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-	'Access-Control-Allow-Methods': 'POST, OPTIONS',
-	'Access-Control-Allow-Headers': 'Content-Type',
+function getCorsHeaders(origin: string) {
+	const allowed = ALLOWED_ORIGINS.has(origin) ? origin : ''
+	return {
+		'Access-Control-Allow-Origin': allowed,
+		'Access-Control-Allow-Methods': 'POST, OPTIONS',
+		'Access-Control-Allow-Headers': 'Content-Type',
+	}
 }
 
-function cors(body: string, status = 200) {
+function cors(body: string, origin: string, status = 200) {
 	return new Response(body, {
 		status,
-		headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+		headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' },
 	})
 }
 
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
+		const origin = request.headers.get('Origin') || ''
+
 		// Preflight
 		if (request.method === 'OPTIONS') {
-			return new Response(null, { status: 204, headers: CORS_HEADERS })
+			return new Response(null, { status: 204, headers: getCorsHeaders(origin) })
 		}
 
 		if (request.method !== 'POST') {
-			return cors(JSON.stringify({ error: 'Method not allowed' }), 405)
+			return cors(JSON.stringify({ error: 'Method not allowed' }), origin, 405)
 		}
 
 		let transcript: string
@@ -33,11 +40,11 @@ export default {
 			const body = await request.json() as { transcript?: string }
 			transcript = (body.transcript || '').trim()
 		} catch {
-			return cors(JSON.stringify({ error: 'Invalid JSON body' }), 400)
+			return cors(JSON.stringify({ error: 'Invalid JSON body' }), origin, 400)
 		}
 
 		if (!transcript) {
-			return cors(JSON.stringify({ error: 'transcript is required' }), 400)
+			return cors(JSON.stringify({ error: 'transcript is required' }), origin, 400)
 		}
 
 		const systemPrompt = `You are a roofing inspection data extractor for TC Roofing and Restorations LLC.
@@ -210,7 +217,7 @@ Return this exact structure (use null for any field not mentioned in the transcr
 
 		if (!anthropicResp.ok) {
 			const err = await anthropicResp.text()
-			return cors(JSON.stringify({ error: `Anthropic error: ${anthropicResp.status}`, detail: err }), 502)
+			return cors(JSON.stringify({ error: `Anthropic error: ${anthropicResp.status}`, detail: err }), origin, 502)
 		}
 
 		const anthropicData = await anthropicResp.json() as { content: { text: string }[] }
@@ -227,9 +234,9 @@ Return this exact structure (use null for any field not mentioned in the transcr
 		try {
 			JSON.parse(raw)
 		} catch {
-			return cors(JSON.stringify({ error: 'AI returned malformed JSON', raw }), 502)
+			return cors(JSON.stringify({ error: 'AI returned malformed JSON', raw }), origin, 502)
 		}
 
-		return cors(raw)
+		return cors(raw, origin)
 	},
 }
