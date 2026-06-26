@@ -48,7 +48,7 @@ export default function JobInfo() {
   const [isOpen, setIsOpen] = useState(true)
 
   function field(id, label, props = {}) {
-    const { full, validation, ...inputProps } = props
+    const { full, validation, required, ...inputProps } = props
     const value = ji[id] || ''
     const showPhoneError = validation === 'phone' && value && phoneDigits(value).length !== 10
     const showEmailError = validation === 'email' && value && !isValidEmail(value)
@@ -65,11 +65,16 @@ export default function JobInfo() {
 
     return (
       <div className={`form-field ${full ? 'form-field--full' : ''}`}>
-        <label className="form-label">{label}</label>
+        <label className="form-label" htmlFor={id}>
+          {label}{required && <span className="required-star"> *</span>}
+        </label>
         <input
+          id={id}
+          name={id}
           className={`form-input ${error ? 'form-input--invalid' : ''}`}
           value={value}
           onChange={handleChange}
+          required={required}
           aria-invalid={Boolean(error)}
           {...inputProps}
         />
@@ -149,9 +154,9 @@ export default function JobInfo() {
       <div className={`collapse-panel ${isOpen ? 'collapse-panel--open' : ''}`} aria-hidden={!isOpen}>
         <div className="collapse-panel__inner">
           <div className="form-grid">
-            {field('cust', 'Customer Name(s)', { full: true, placeholder: 'John & Jane Smith' })}
-            {field('phone', 'Customer Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0100', validation: 'phone' })}
-            {field('email', 'Customer Email', { type: 'email', placeholder: 'john@email.com', validation: 'email' })}
+            {field('cust', 'Customer Name(s)', { full: true, placeholder: 'John & Jane Smith', required: true })}
+            {field('phone', 'Customer Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0100', validation: 'phone', required: true })}
+            {field('email', 'Customer Email', { type: 'email', placeholder: 'john@email.com', validation: 'email', required: true })}
 
             <div className="form-field form-field--full">
               <label className="form-label">Preferred Contact Method</label>

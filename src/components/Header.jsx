@@ -45,8 +45,10 @@ export default function Header() {
         <div className="app-header__brand">
           <img src={tcLogo} alt="TC Roofing & Restorations" className="app-header__logo" />
           <div className="app-header__title-group">
-            <p className="section-eyebrow">Field Operations</p>
-            <h1 className="app-header__title">TC Roofing Field Inspection</h1>
+            <h1 className="app-header__title">
+              <span className="app-header__title-mobile">Field Inspection</span>
+              <span className="app-header__title-desktop">TC Roofing Field Inspection</span>
+            </h1>
             <p className="app-header__subtitle">Pre-Adjuster Inspection &bull; Texas Hail &amp; Wind</p>
           </div>
         </div>

@@ -7,6 +7,27 @@ import { ArrowLeft, ArrowRight, RotateCcw, Save, Upload, CheckCircle, AlertCircl
 
 const TOTAL_TABS = 6
 
+function phoneDigits(value) {
+  return String(value || '').replace(/\D/g, '')
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim())
+}
+
+function getJobInfoSaveError(jobInfo) {
+  if (!String(jobInfo?.cust || '').trim()) {
+    return { field: 'cust', message: 'Customer name is required before saving.' }
+  }
+  if (phoneDigits(jobInfo?.phone).length !== 10) {
+    return { field: 'phone', message: 'Enter a 10-digit customer phone before saving.' }
+  }
+  if (!isValidEmail(jobInfo?.email)) {
+    return { field: 'email', message: 'Enter a valid customer email before saving.' }
+  }
+  return null
+}
+
 export default function ActionBar() {
   const { activeTab, setActiveTab, resetAll, data, driveSaveStatus, setDriveSaveStatus, loadInspection } = useInspection()
   const { accessToken, user, setTokenExpired } = useAuth()
@@ -27,6 +48,14 @@ export default function ActionBar() {
   }
 
   async function handleSaveToDrive() {
+    const saveError = getJobInfoSaveError(data.jobInfo)
+    if (saveError) {
+      window.alert(saveError.message)
+      goToSection(0)
+      setTimeout(() => document.getElementById(saveError.field)?.focus(), 100)
+      return
+    }
+
     if (!accessToken) {
       setTokenExpired(true)
       return

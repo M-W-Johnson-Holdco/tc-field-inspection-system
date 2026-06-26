@@ -276,7 +276,13 @@ export default function ElevationsSection() {
           <p className="elev-header__sub">Select a side, document each item.</p>
         </div>
 
-        <div className="elev-dir-tabs" role="tablist" aria-label="House elevation sides">
+        <div
+          className="elev-dir-tabs"
+          role="tablist"
+          aria-label="House elevation sides"
+          style={{ '--active-dir-index': DIRECTIONS.indexOf(activeDir), '--dir-count': DIRECTIONS.length }}
+        >
+          <span className="elev-dir-indicator" aria-hidden="true" />
           {DIRECTIONS.map(dir => (
             <button
               key={dir}
@@ -284,7 +290,10 @@ export default function ElevationsSection() {
               role="tab"
               aria-selected={activeDir === dir}
               className={`elev-dir-tab${activeDir === dir ? ' elev-dir-tab--active' : ''}`}
-              onClick={() => setActiveDir(dir)}
+              onClick={e => {
+                setActiveDir(dir)
+                e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+              }}
             >
               {dir}
             </button>
@@ -293,7 +302,7 @@ export default function ElevationsSection() {
 
         <div className="elev-active-label">{activeDir} Elevation</div>
 
-        <div className="elev-items" role="tabpanel">
+        <div key={activeDir} className="elev-items" role="tabpanel">
           {ELEV_ITEMS.map(item => (
             <ElevItem
               key={item.id}

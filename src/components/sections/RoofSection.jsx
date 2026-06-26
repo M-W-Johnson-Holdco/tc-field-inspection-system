@@ -4,6 +4,69 @@ import { useInspection } from '../../context/InspectionContext'
 import { ROOF_ITEMS, SUBSECTIONS } from '../../data/roofItems'
 
 // ── Field Renderer ─────────────────────────────────────────────────
+function isLinearMeasurementField(field) {
+  return field.t === 'num' && /\bLF\b/i.test(field.l)
+}
+
+function parseMeasurement(value) {
+  const text = String(value || '').trim()
+  if (!text) return { feet: '', inches: '' }
+  const feetMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:'|ft|feet)?/i)
+  const inchesMatch = text.match(/(?:'|ft|feet)\s*(\d+(?:\.\d+)?)\s*(?:"|in|inches)?/i)
+    || text.match(/(\d+(?:\.\d+)?)\s*(?:"|in|inches)/i)
+  return {
+    feet: feetMatch ? feetMatch[1] : '',
+    inches: inchesMatch ? inchesMatch[1] : '',
+  }
+}
+
+function formatMeasurement(feet, inches) {
+  const ft = String(feet || '').trim()
+  const inch = String(inches || '').trim()
+  if (!ft && !inch) return ''
+  if (!inch) return `${ft}'`
+  return `${ft || '0'}' ${inch}"`
+}
+
+function MeasurementInput({ field, value, onChange }) {
+  const { feet, inches } = parseMeasurement(value)
+  const update = (part, nextValue) => {
+    onChange(formatMeasurement(part === 'feet' ? nextValue : feet, part === 'inches' ? nextValue : inches))
+  }
+
+  return (
+    <div className="field-group">
+      <label className="form-label">{field.l}</label>
+      <div className="measurement-input">
+        <label className="measurement-input__part">
+          <input
+            className="field-input measurement-input__field"
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9.]*"
+            value={feet}
+            placeholder="0"
+            onChange={e => update('feet', e.target.value)}
+          />
+          <span className="measurement-input__unit">ft</span>
+        </label>
+        <label className="measurement-input__part">
+          <input
+            className="field-input measurement-input__field"
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9.]*"
+            value={inches}
+            placeholder="0"
+            onChange={e => update('inches', e.target.value)}
+          />
+          <span className="measurement-input__unit">in</span>
+        </label>
+      </div>
+    </div>
+  )
+}
+
 function FieldRenderer({ field, value, onChange }) {
   const { t, l, o, p } = field
   const lbl = <label className="form-label">{l}</label>
@@ -98,6 +161,10 @@ function FieldRenderer({ field, value, onChange }) {
   }
 
   const inputCh = Math.max(String(value || p || '').length, 3)
+
+  if (isLinearMeasurementField(field)) {
+    return <MeasurementInput field={field} value={value} onChange={onChange} />
+  }
 
   if (t === 'num') {
     const currentValue = value === '' || value == null ? 0 : Number(value)
