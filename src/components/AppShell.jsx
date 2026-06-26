@@ -7,8 +7,10 @@ import JobInfo from './sections/JobInfo'
 import RoofSection from './sections/RoofSection'
 import ElevationsSection from './sections/ElevationsSection'
 import InteriorSection from './sections/InteriorSection'
+import ExteriorSection from './sections/ExteriorSection'
+import NotesSection from './sections/NotesSection'
 
-const COMING_SOON_LABELS = ['', '', '', 'Exterior Property', 'Notes', 'AI Parse']
+const COMING_SOON_LABELS = ['', '', '', '', '', 'AI Parse']
 
 function PanelContent() {
   const { activeTab } = useInspection()
@@ -16,6 +18,8 @@ function PanelContent() {
   if (activeTab === 0) content = <RoofSection />
   else if (activeTab === 1) content = <ElevationsSection />
   else if (activeTab === 2) content = <InteriorSection />
+  else if (activeTab === 3) content = <ExteriorSection />
+  else if (activeTab === 4) content = <NotesSection />
   else content = (
     <div className="coming-soon app-card">
       <p className="section-eyebrow">Inspection Workspace</p>
@@ -37,6 +41,9 @@ function Shell() {
           <TabBar />
           <PanelContent />
         </main>
+        <footer className="app-footer">
+          &copy; 2026 TC Roofing &amp; Restorations. All rights reserved.
+        </footer>
       </div>
       <ActionBar />
       <ReAuthModal />

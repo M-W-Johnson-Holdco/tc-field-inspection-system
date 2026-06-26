@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { idbSave, idbLoad } from '../lib/idb'
 import { ROOF_ITEMS } from '../data/roofItems'
 import { ELEV_ITEMS, DIRECTIONS } from '../data/elevItems'
+import { EXTERIOR_ITEMS } from '../data/exteriorItems'
 
 const InspectionContext = createContext(null)
 
@@ -17,6 +18,15 @@ const INITIAL_ELEV_DATA = Object.fromEntries(
 
 const INITIAL_INTERIOR_DATA = { rooms: [] }
 
+const INITIAL_EXTERIOR_DATA = Object.fromEntries(
+  EXTERIOR_ITEMS.map(item => [item.id, { excluded: false, fields: {}, photos: [] }])
+)
+
+const INITIAL_NOTES_DATA = {
+  summary: '', concerns: '', homeage: '', crosssell: '',
+  roof: '', roofage: '', defects: '', homeowner: '', misc: '',
+}
+
 const INITIAL_STATE = {
   jobInfo: {
     cust: '', phone: '', email: '', addr: '',
@@ -30,6 +40,8 @@ const INITIAL_STATE = {
   roofData: INITIAL_ROOF_DATA,
   elevData: INITIAL_ELEV_DATA,
   interiorData: INITIAL_INTERIOR_DATA,
+  exteriorData: INITIAL_EXTERIOR_DATA,
+  notesData: INITIAL_NOTES_DATA,
 }
 
 function isFilled(value) {
@@ -133,6 +145,8 @@ export function InspectionProvider({ children }) {
           roofData: { ...INITIAL_ROOF_DATA, ...(saved.roofData || {}) },
           elevData: { ...INITIAL_ELEV_DATA, ...(saved.elevData || {}) },
           interiorData: saved.interiorData || INITIAL_INTERIOR_DATA,
+          exteriorData: { ...INITIAL_EXTERIOR_DATA, ...(saved.exteriorData || {}) },
+          notesData: { ...INITIAL_NOTES_DATA, ...(saved.notesData || {}) },
         })
         if (Number.isInteger(saved.activeTab)) setActiveTabState(saved.activeTab)
       }
@@ -338,6 +352,54 @@ export function InspectionProvider({ children }) {
     })
   }
 
+  // ── Notes ─────────────────────────────────────────────────────────
+
+  function updateNote(field, value) {
+    setData(prev => {
+      const next = { ...prev, notesData: { ...prev.notesData, [field]: value } }
+      scheduleSave(next)
+      return next
+    })
+  }
+
+  // ── Exterior ──────────────────────────────────────────────────────
+
+  function toggleExteriorExclude(itemId) {
+    setData(prev => {
+      const item = prev.exteriorData[itemId]
+      const next = { ...prev, exteriorData: { ...prev.exteriorData, [itemId]: { ...item, excluded: !item.excluded } } }
+      scheduleSave(next)
+      return next
+    })
+  }
+
+  function updateExteriorField(itemId, label, value) {
+    setData(prev => {
+      const item = prev.exteriorData[itemId]
+      const next = { ...prev, exteriorData: { ...prev.exteriorData, [itemId]: { ...item, fields: { ...item.fields, [label]: value } } } }
+      scheduleSave(next)
+      return next
+    })
+  }
+
+  function addExteriorPhoto(itemId, dataUrl) {
+    setData(prev => {
+      const item = prev.exteriorData[itemId]
+      const next = { ...prev, exteriorData: { ...prev.exteriorData, [itemId]: { ...item, photos: [...item.photos, dataUrl] } } }
+      scheduleSave(next)
+      return next
+    })
+  }
+
+  function removeExteriorPhoto(itemId, index) {
+    setData(prev => {
+      const item = prev.exteriorData[itemId]
+      const next = { ...prev, exteriorData: { ...prev.exteriorData, [itemId]: { ...item, photos: item.photos.filter((_, i) => i !== index) } } }
+      scheduleSave(next)
+      return next
+    })
+  }
+
   // ─────────────────────────────────────────────────────────────────
 
   function manualSave() {
@@ -357,6 +419,8 @@ export function InspectionProvider({ children }) {
       roofData: { ...INITIAL_ROOF_DATA, ...(saved.roofData || {}) },
       elevData: { ...INITIAL_ELEV_DATA, ...(saved.elevData || {}) },
       interiorData: saved.interiorData || INITIAL_INTERIOR_DATA,
+      exteriorData: { ...INITIAL_EXTERIOR_DATA, ...(saved.exteriorData || {}) },
+      notesData: { ...INITIAL_NOTES_DATA, ...(saved.notesData || {}) },
     }
     setData(next)
     setActiveTabState(0)
@@ -387,6 +451,9 @@ export function InspectionProvider({ children }) {
       addElevPhoto, removeElevPhoto,
       addInteriorRoom, removeInteriorRoom, updateInteriorRoom,
       addInteriorPhoto, removeInteriorPhoto,
+      toggleExteriorExclude, updateExteriorField,
+      addExteriorPhoto, removeExteriorPhoto,
+      updateNote,
     }}>
       {children}
     </InspectionContext.Provider>
