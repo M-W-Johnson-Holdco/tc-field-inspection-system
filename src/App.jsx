@@ -1,7 +1,8 @@
+import { useEffect } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginScreen from './components/LoginScreen'
-import HomeScreen from './components/HomeScreen'
+import AppShell from './components/AppShell'
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
@@ -18,18 +19,46 @@ function AppRoutes() {
       />
       <Route
         path="/"
-        element={<ProtectedRoute><HomeScreen /></ProtectedRoute>}
+        element={<ProtectedRoute><AppShell /></ProtectedRoute>}
       />
     </Routes>
   )
 }
 
 export default function App() {
+  useEffect(() => {
+    const savedY = Number(sessionStorage.getItem('tcScrollY') || 0)
+    if (savedY > 0) {
+      setTimeout(() => window.scrollTo(0, savedY), 80)
+    }
+
+    function saveScroll() {
+      sessionStorage.setItem('tcScrollY', String(window.scrollY))
+    }
+
+    window.addEventListener('scroll', saveScroll, { passive: true })
+    window.addEventListener('beforeunload', saveScroll)
+
+    return () => {
+      window.removeEventListener('scroll', saveScroll)
+      window.removeEventListener('beforeunload', saveScroll)
+    }
+  }, [])
+
   return (
-    <AuthProvider>
-      <HashRouter>
-        <AppRoutes />
-      </HashRouter>
-    </AuthProvider>
+    <>
+      <div className="orientation-lock" role="alert" aria-live="polite">
+        <div className="orientation-lock__card">
+          <div className="orientation-lock__mark">TC</div>
+          <h2>Rotate Back to Portrait</h2>
+          <p>This field app is designed for portrait mode on phones.</p>
+        </div>
+      </div>
+      <AuthProvider>
+        <HashRouter>
+          <AppRoutes />
+        </HashRouter>
+      </AuthProvider>
+    </>
   )
 }
