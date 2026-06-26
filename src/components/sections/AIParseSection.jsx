@@ -291,10 +291,10 @@ export default function AIParseSection() {
       <div className="ai-card app-card">
         <label className="ai-card__label">ℹ️ How It Works</label>
         <div className="ai-card__info">
-          <p><strong>What populates automatically:</strong> Customer name, address, insurance info, roof specs, measurements, vent types and quantities, pipe jacks, flashings, elevation specs, exterior items, and all notes fields.</p>
-          <p><strong>What requires manual entry:</strong> Photos (always manual) and fields where the transcript is ambiguous (flagged in yellow for review).</p>
-          <p><strong>Review before saving:</strong> Yellow flags indicate fields where the AI had low confidence. Always review flagged fields before hitting Save.</p>
-          <p><strong>Plaud tip:</strong> The cleaner and more structured your dictation, the better the parse. Speak field by field and call out section names for best results.</p>
+          <p><strong>What populates automatically:</strong> Customer name, address, insurance info, roof specs, stories, pitch, layers, all vent types and quantities, pipe jacks, flashings, chimney, valley, underlayment — plus per-elevation details (siding, fascia, soffit, gutters, downspouts, screens, shutters, entry doors, garage doors, A/C) for all four sides. Also exterior items and all notes fields.</p>
+          <p><strong>What requires manual entry:</strong> Photos (always manual) and any fields flagged for review below the Parse button.</p>
+          <p><strong>Review before saving:</strong> Flagged fields are ones the AI was uncertain about. Always verify them before hitting Save.</p>
+          <p><strong>Plaud tip:</strong> Walk through each section out loud by name. For example: "Roof — architectural shingles, two stories, four-twelve pitch, one layer. Ridge vent — twenty linear feet, metal, not painted. Front elevation — five-inch aluminum gutters, damaged. Two downspouts, aluminum, not damaged." The more structured your dictation, the fewer flags you'll see.</p>
         </div>
       </div>
     </div>
