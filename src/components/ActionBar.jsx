@@ -3,7 +3,7 @@ import { useInspection } from '../context/InspectionContext'
 import { useAuth } from '../context/AuthContext'
 import { saveInspectionToDrive, TokenExpiredError } from '../lib/driveService'
 import OpenInspectionModal from './OpenInspectionModal'
-import { ArrowLeft, ArrowRight, RotateCcw, Save, Upload, CheckCircle, AlertCircle, FolderOpen, FilePlus } from 'lucide-react'
+import { ArrowLeft, ArrowRight, RotateCcw, Save, Upload, CheckCircle, AlertCircle, FolderOpen, FilePlus, CircleHelp, MoreHorizontal } from 'lucide-react'
 
 const TOTAL_TABS = 6
 
@@ -33,6 +33,8 @@ export default function ActionBar() {
   const { accessToken, user, setTokenExpired } = useAuth()
   const [driveStatus, setDriveStatus] = useState('idle') // idle | saving | done | error
   const [showOpen, setShowOpen] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
+  const [showMore, setShowMore] = useState(false)
   const canGoBack = activeTab > 0
   const canGoNext = activeTab < TOTAL_TABS - 1
 
@@ -83,6 +85,7 @@ export default function ActionBar() {
   }
 
   function handleNew() {
+    setShowMore(false)
     if (!window.confirm('Start a new inspection? This will clear the current form.')) return
     startNewInspection()
     goToSection(0)
@@ -90,6 +93,7 @@ export default function ActionBar() {
   }
 
   function handleOpenInspection() {
+    setShowMore(false)
     if (!accessToken) {
       setTokenExpired(true)
       return
@@ -119,10 +123,48 @@ export default function ActionBar() {
           <ArrowLeft className="app-button__icon" aria-hidden="true" />
           <span className="app-button__label">Back</span>
         </button>
-        <button className="app-button app-button--primary" aria-label="Next section" title="Next section" onClick={() => goToSection(Math.min(TOTAL_TABS - 1, activeTab + 1))} disabled={!canGoNext}>
+        <button className="app-button app-button--primary" aria-label="Next" title="Next" onClick={() => goToSection(Math.min(TOTAL_TABS - 1, activeTab + 1))} disabled={!canGoNext}>
           <ArrowRight className="app-button__icon" aria-hidden="true" />
-          <span className="app-button__label">Next Section</span>
+          <span className="app-button__label">Next</span>
         </button>
+        <div className="toolbar-more">
+          <button
+            className="app-button app-button--more"
+            aria-label="More actions"
+            title="More actions"
+            aria-expanded={showMore}
+            onClick={() => setShowMore(open => !open)}
+          >
+            <MoreHorizontal className="app-button__icon" aria-hidden="true" />
+            <span className="app-button__label">More</span>
+          </button>
+          {showMore && (
+            <div className="toolbar-more__menu" role="menu" aria-label="More toolbar actions">
+              <button className="toolbar-more__item" type="button" role="menuitem" aria-label="Open inspection" title="Open inspection" onClick={handleOpenInspection}>
+                <FolderOpen className="toolbar-more__icon" aria-hidden="true" />
+              </button>
+              <button className="toolbar-more__item" type="button" role="menuitem" aria-label="Export" title="Export" disabled>
+                <Upload className="toolbar-more__icon" aria-hidden="true" />
+              </button>
+              <button className="toolbar-more__item" type="button" role="menuitem" aria-label="New inspection" title="New inspection" onClick={handleNew}>
+                <FilePlus className="toolbar-more__icon" aria-hidden="true" />
+              </button>
+              <button
+                className="toolbar-more__item toolbar-more__item--danger"
+                type="button"
+                role="menuitem"
+                aria-label="Reset"
+                title="Reset"
+                onClick={() => {
+                  setShowMore(false)
+                  resetAll()
+                }}
+              >
+                <RotateCcw className="toolbar-more__icon" aria-hidden="true" />
+              </button>
+            </div>
+          )}
+        </div>
         <button
           className={`app-button app-button--save${driveStatus === 'done' ? ' app-button--export-done' : ''}${driveStatus === 'error' ? ' app-button--export-error' : ''}`}
           aria-label="Save to Google Drive"
@@ -133,26 +175,12 @@ export default function ActionBar() {
           <SaveIcon className="app-button__icon" aria-hidden="true" />
           <span className="app-button__label">{saveLabel}</span>
         </button>
-        <button
-          className="app-button app-button--open"
-          aria-label="Open inspection"
-          title="Open inspection"
-          onClick={handleOpenInspection}
-        >
-          <FolderOpen className="app-button__icon" aria-hidden="true" />
-          <span className="app-button__label">Open</span>
-        </button>
-        <button className="app-button app-button--export" aria-label="Export" title="Export" disabled>
-          <Upload className="app-button__icon" aria-hidden="true" />
-          <span className="app-button__label">Export</span>
-        </button>
-        <button className="app-button app-button--new" aria-label="New inspection" title="New inspection" onClick={handleNew}>
-          <FilePlus className="app-button__icon" aria-hidden="true" />
-          <span className="app-button__label">New</span>
-        </button>
-        <button className="app-button app-button--reset" aria-label="Reset" title="Reset" onClick={resetAll}>
-          <RotateCcw className="app-button__icon" aria-hidden="true" />
-          <span className="app-button__label">Reset</span>
+        <button className="app-button app-button--help" aria-label="Help" title="Help" onClick={() => {
+          setShowMore(false)
+          setShowHelp(true)
+        }}>
+          <CircleHelp className="app-button__icon" aria-hidden="true" />
+          <span className="app-button__label">Help</span>
         </button>
       </div>
 
@@ -163,6 +191,30 @@ export default function ActionBar() {
           onLoad={handleLoad}
           onClose={() => setShowOpen(false)}
         />
+      )}
+
+      {showHelp && (
+        <>
+          <div className="modal-backdrop modal-backdrop--top" onClick={() => setShowHelp(false)} />
+          <div className="toolbar-help-modal" role="dialog" aria-modal="true" aria-labelledby="toolbar-help-title">
+            <div className="toolbar-help-modal__header">
+              <h2 id="toolbar-help-title">Toolbar Help</h2>
+              <button className="toolbar-help-modal__close" type="button" onClick={() => setShowHelp(false)} aria-label="Close help">
+                ×
+              </button>
+            </div>
+            <div className="toolbar-help-modal__list">
+              <p><ArrowLeft className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Back:</strong> Go to the previous inspection section.</span></p>
+              <p><ArrowRight className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Next:</strong> Go to the next inspection section.</span></p>
+              <p><Save className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Save:</strong> Save the current inspection to Google Drive.</span></p>
+              <p><CircleHelp className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Help:</strong> Show this toolbar guide.</span></p>
+              <p><FolderOpen className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Open:</strong> Open a saved inspection from Google Drive.</span></p>
+              <p><Upload className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Export:</strong> Reserved for exporting inspection reports.</span></p>
+              <p><FilePlus className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>New:</strong> Start a new inspection form.</span></p>
+              <p><RotateCcw className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Reset:</strong> Clear all current inspection data.</span></p>
+            </div>
+          </div>
+        </>
       )}
     </>
   )
