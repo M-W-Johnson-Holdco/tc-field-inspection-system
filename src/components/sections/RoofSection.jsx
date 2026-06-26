@@ -309,7 +309,7 @@ function CheckItem({ itemDef, trigPhoto }) {
           <div className="ri-flag-row">
             {hasP && <span className="ri-flag ri-flag--photo">PHOTO</span>}
             {hasM && <span className="ri-flag ri-flag--measure">MEASURE</span>}
-            {hasD && <span className="ri-flag ri-flag--damage">DAMAGE</span>}
+            {hasD && item.fields['Damaged'] === 'Yes' && <span className="ri-flag ri-flag--damage">DAMAGE</span>}
           </div>
 
           <div className="ri-fields-grid">
@@ -324,11 +324,19 @@ function CheckItem({ itemDef, trigPhoto }) {
           </div>
 
           {hasD && (
+            <FieldRenderer
+              field={{ t: 'yn', l: 'Damaged' }}
+              value={item.fields['Damaged']}
+              onChange={val => updateRoofField(id, 'Damaged', val)}
+            />
+          )}
+
+          {hasD && item.fields['Damaged'] === 'Yes' && (
             <div className="ri-damage-row">
               <label className="form-label">Damage Description</label>
               <textarea
                 className="ri-damage-input"
-                placeholder="Describe visible hail/wind damage..."
+                placeholder="Describe damage..."
                 value={item.fields['_damage'] || ''}
                 onChange={e => updateRoofField(id, '_damage', e.target.value)}
               />
