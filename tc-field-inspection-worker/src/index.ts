@@ -44,23 +44,51 @@ export default {
 Extract structured data from the field inspection transcript and return ONLY valid JSON.
 No preamble, no markdown fences, no explanation. Just the JSON object.
 
-CRITICAL NORMALIZATION RULES - follow these exactly:
-- Yes/No fields: return exactly "Yes" or "No"
-- Shingle style: return exact values only: 3-Tab, Architectural, Designer, Disco, Impact Resistant
-- Valley style: return exactly "Ice & Water" or "W-Valley" or "Valley Metal"
-- Ridge vent type: return exactly "Metal" or "Shingle Over"
-- Underlayment grade: return exactly "Synthetic" or "Felt" or "Unknown"
-- Ridge cap grade: return exactly "3-Tab" or "H&R" or "Hi Profile"
-- Starter style: return exactly "Starter Strip" or "3-Tab"
-- Pipe jack type: return exactly "3-in-1/Neoprene" or "Lead" or "Lifetime/Silicone"
-- Counter flashing action: return exactly "Replace" or "Reuse"
-- Chimney size: return exactly "Small" (width < 24in), "Medium" (24-36in), or "Large" (> 36in)
-- Residence type: return exactly "Primary" or "Rental"
-- Gutter style: return exactly "Half Round" or "K-Style"
-- Downspout width: return exactly "3\\" Std" or "4\\" Oversized"
-- Preferred contact: comma-separated from: Phone, Email, Text
+FLAGS: Add the JSON key name (e.g. "ridgeCapGrade") to the "flags" array whenever you are guessing, uncertain, or the transcript is ambiguous about that field. Do not flag fields you are confident about.
 
-Return this exact structure (use null for any field not mentioned):
+NORMALIZATION — return ONLY the exact values listed below for these fields. If the transcript is unclear, return null and add the key to flags.
+
+Yes/No fields (yn): return exactly "Yes" or "No"
+
+roof.shingleStyle: array, values from ["3-Tab","Architectural","Designer","Disco","Impact Resistant"]
+roof.edgeFlashingType: "Drip Edge" or "Critter Guard"
+roof.edgeMaterial: "Galvanized" or "Aluminum"
+roof.underlaymentGrade: "Synthetic" or "Felt" or "Unknown"
+roof.ridgeCapGrade: "3-Tab" or "H&R" or "Hi Profile"
+roof.ridgeVentType: "Metal" or "Shingle Over"
+roof.starterStyle: "Starter Strip" or "3-Tab"
+roof.valleyStyle: "Ice & Water" or "W-Valley" or "Valley Metal"
+roof.boxVentMaterial: "Metal" or "Plastic" or "Wood"
+roof.turbineMaterial: "Metal" or "Plastic"
+roof.pipeJackType: "3-in-1/Neoprene" or "Lead" or "Lifetime/Silicone"
+roof.exhaustStackDamageTo: array, values from ["Flange","Stack","Cap"]
+roof.kickoutsPresent: "Yes" or "No"
+roof.kickoutsNeeded: "Yes" or "No"
+roof.counterFlashingCondition: "Replace" or "Reuse"
+roof.chimneySize: "Small" (width < 24in) or "Medium" (24–36in) or "Large" (> 36in)
+roof.lowSlopeLocation: "Front Porch" or "Back Porch" or "Other"
+roof.exposedRafters: "Yes" or "No"
+
+elevations.[direction].gutterMaterial: "Aluminum" or "Steel" or "Copper" or "Vinyl"
+elevations.[direction].gutterSize: "4\\"" or "5\\"" or "6\\""
+elevations.[direction].downspoutMaterial: "Aluminum" or "Steel" or "Copper" or "Vinyl"
+elevations.[direction].sidingMaterial: "Vinyl" or "Aluminum" or "Wood" or "Fiber Cement" or "Stucco" or "Brick" or "Stone" or "EIFS"
+elevations.[direction].fasciaMaterial: "Wood" or "Aluminum" or "Vinyl" or "Fiber Cement"
+elevations.[direction].soffitMaterial: "Wood" or "Aluminum" or "Vinyl" or "Fiber Cement"
+elevations.[direction].shutterMaterial: "Wood" or "Vinyl" or "Aluminum" or "Composite"
+elevations.[direction].doorMaterial: "Steel" or "Fiberglass" or "Wood" or "Aluminum"
+elevations.[direction].garageDoorMaterial: "Steel" or "Wood" or "Aluminum" or "Fiberglass"
+elevations.[direction].garageDoorPanelStyle: "Raised Panel" or "Flush Panel" or "Carriage Style"
+
+exterior.fenceMaterial: array, values from ["Pine","Cedar","Other Wood","Vinyl","Aluminum","Rod Iron"]
+exterior.fenceStyle: "Privacy" or "Board on Board" or "Picket"
+exterior.fencePosts: "Metal Rod" or "4x4" or "6x6"
+exterior.outdoorDamagedItems: array, values from ["Grill / Cover","Outdoor Furniture","Playset","Trampoline","Table Umbrella","Retractable Awning","Landscape Lighting","Potted Plants","Other"]
+
+jobInfo.residenceType: "Primary" or "Rental"
+jobInfo.preferredContact: comma-separated from Phone, Email, Text
+
+Return this exact structure (use null for any field not mentioned in the transcript):
 {
   "jobInfo": {
     "cust": null, "phone": null, "email": null, "addr": null,
@@ -77,10 +105,11 @@ Return this exact structure (use null for any field not mentioned):
     "valleyPresent": null, "valleyStyle": null,
     "ridgeVentLF": null, "ridgeVentType": null, "ridgeVentPainted": null,
     "boxVentQty": null, "boxVentMaterial": null, "boxVentPainted": null,
-    "turbineQty": null, "powerVentQty": null, "solarVentQty": null,
+    "turbineQty": null, "turbineMaterial": null, "turbinePainted": null,
+    "powerVentQty": null, "powerVentPainted": null,
+    "solarVentQty": null,
     "pipeJackType": null, "pipeJack15qty": null, "pipeJack2qty": null,
     "pipeJack3qty": null, "pipeJack4qty": null, "pipeJackPainted": null,
-    "exhaustStackQty": null, "exhaustStackWidth": null,
     "exhaustStackDamageTo": null, "exhaustStackPainted": null,
     "kickoutsPresent": null, "kickoutsNeeded": null, "kickoutsPainted": null,
     "rainDiverterQty": null, "rainDiverterLF": null, "rainDiverterPainted": null,
@@ -95,18 +124,57 @@ Return this exact structure (use null for any field not mentioned):
   },
   "elevations": {
     "Front": {
-      "gutterSize": null, "gutterStyle": null, "gutterMaterial": null,
-      "gutterLF": null, "gutterPainted": null, "gutterDamage": null,
-      "gutterGuardsPresent": null, "downspoutQty": null, "downspoutLF": null,
-      "downspoutWidth": null, "downspoutMaterial": null, "downspoutPainted": null,
-      "downspoutDamage": null, "fasciaDamage": null, "sidingDamage": null,
-      "gableVentDamage": null, "windowDamage": null, "screenQty": null,
-      "screenSize": null, "screenDamage": null, "shutterDamage": null,
-      "doorDamage": null, "garageDoorDamage": null
+      "sidingMaterial": null, "sidingDamage": null,
+      "fasciaMaterial": null, "fasciaDamage": null,
+      "soffitMaterial": null, "soffitDamage": null,
+      "gutterMaterial": null, "gutterSize": null, "gutterDamage": null,
+      "downspoutQty": null, "downspoutMaterial": null, "downspoutDamage": null,
+      "screenQty": null, "screenDamage": null,
+      "shutterMaterial": null, "shutterQty": null, "shutterDamage": null,
+      "doorQty": null, "doorMaterial": null, "stormDoor": null, "doorDamage": null,
+      "garageDoorQty": null, "garageDoorMaterial": null, "garageDoorPanelStyle": null, "garageDoorDamage": null,
+      "acPresent": null, "acDamage": null,
+      "notes": null
     },
-    "Right": { "gutterLF": null, "downspoutQty": null, "fasciaDamage": null, "sidingDamage": null, "notes": null },
-    "Rear":  { "gutterLF": null, "downspoutQty": null, "fasciaDamage": null, "sidingDamage": null, "notes": null },
-    "Left":  { "gutterLF": null, "downspoutQty": null, "fasciaDamage": null, "sidingDamage": null, "notes": null }
+    "Right": {
+      "sidingMaterial": null, "sidingDamage": null,
+      "fasciaMaterial": null, "fasciaDamage": null,
+      "soffitMaterial": null, "soffitDamage": null,
+      "gutterMaterial": null, "gutterSize": null, "gutterDamage": null,
+      "downspoutQty": null, "downspoutMaterial": null, "downspoutDamage": null,
+      "screenQty": null, "screenDamage": null,
+      "shutterMaterial": null, "shutterQty": null, "shutterDamage": null,
+      "doorQty": null, "doorMaterial": null, "stormDoor": null, "doorDamage": null,
+      "garageDoorQty": null, "garageDoorMaterial": null, "garageDoorPanelStyle": null, "garageDoorDamage": null,
+      "acPresent": null, "acDamage": null,
+      "notes": null
+    },
+    "Rear": {
+      "sidingMaterial": null, "sidingDamage": null,
+      "fasciaMaterial": null, "fasciaDamage": null,
+      "soffitMaterial": null, "soffitDamage": null,
+      "gutterMaterial": null, "gutterSize": null, "gutterDamage": null,
+      "downspoutQty": null, "downspoutMaterial": null, "downspoutDamage": null,
+      "screenQty": null, "screenDamage": null,
+      "shutterMaterial": null, "shutterQty": null, "shutterDamage": null,
+      "doorQty": null, "doorMaterial": null, "stormDoor": null, "doorDamage": null,
+      "garageDoorQty": null, "garageDoorMaterial": null, "garageDoorPanelStyle": null, "garageDoorDamage": null,
+      "acPresent": null, "acDamage": null,
+      "notes": null
+    },
+    "Left": {
+      "sidingMaterial": null, "sidingDamage": null,
+      "fasciaMaterial": null, "fasciaDamage": null,
+      "soffitMaterial": null, "soffitDamage": null,
+      "gutterMaterial": null, "gutterSize": null, "gutterDamage": null,
+      "downspoutQty": null, "downspoutMaterial": null, "downspoutDamage": null,
+      "screenQty": null, "screenDamage": null,
+      "shutterMaterial": null, "shutterQty": null, "shutterDamage": null,
+      "doorQty": null, "doorMaterial": null, "stormDoor": null, "doorDamage": null,
+      "garageDoorQty": null, "garageDoorMaterial": null, "garageDoorPanelStyle": null, "garageDoorDamage": null,
+      "acPresent": null, "acDamage": null,
+      "notes": null
+    }
   },
   "exterior": {
     "fenceMaterial": null, "fenceStyle": null, "fencePosts": null,

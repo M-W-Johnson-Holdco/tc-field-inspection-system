@@ -2289,12 +2289,35 @@ button:disabled {
   padding: var(--card-pad);
 }
 
+.ai-card__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-card__corner-btn {
+  flex-shrink: 0;
+}
+
 .ai-card__label {
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--muted);
+}
+
+.ai-transcript-btn {
+  width: 72px;
+  padding: 6px 0;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
 }
 
 .ai-card__textarea {

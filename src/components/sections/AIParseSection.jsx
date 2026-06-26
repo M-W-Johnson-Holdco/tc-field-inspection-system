@@ -66,20 +66,34 @@ const ROOF_MAP = [
 
 // Maps AI JSON elevation keys → { itemId, fieldLabel } per direction
 const ELEV_MAP = [
-  { key: 'sidingDamage',      itemId: 'ev0',  label: 'Damaged' },
-  { key: 'fasciaDamage',      itemId: 'ev1',  label: 'Damaged' },
-  { key: 'gutterMaterial',    itemId: 'ev3',  label: 'Material' },
-  { key: 'gutterSize',        itemId: 'ev3',  label: 'Size' },
-  { key: 'gutterDamage',      itemId: 'ev3',  label: 'Damaged' },
-  { key: 'downspoutQty',      itemId: 'ev4',  label: 'Qty' },
-  { key: 'downspoutMaterial', itemId: 'ev4',  label: 'Material' },
-  { key: 'downspoutDamage',   itemId: 'ev4',  label: 'Damaged' },
-  { key: 'screenQty',         itemId: 'ev5',  label: 'Qty' },
-  { key: 'screenDamage',      itemId: 'ev5',  label: 'Damaged' },
-  { key: 'shutterDamage',     itemId: 'ev6',  label: 'Damaged' },
-  { key: 'doorDamage',        itemId: 'ev7',  label: 'Damaged' },
-  { key: 'garageDoorDamage',  itemId: 'ev8',  label: 'Damaged' },
-  { key: 'notes',             itemId: 'ev10', label: 'Notes' },
+  { key: 'sidingMaterial',       itemId: 'ev0',  label: 'Material' },
+  { key: 'sidingDamage',         itemId: 'ev0',  label: 'Damaged' },
+  { key: 'fasciaMaterial',       itemId: 'ev1',  label: 'Material' },
+  { key: 'fasciaDamage',         itemId: 'ev1',  label: 'Damaged' },
+  { key: 'soffitMaterial',       itemId: 'ev2',  label: 'Material' },
+  { key: 'soffitDamage',         itemId: 'ev2',  label: 'Damaged' },
+  { key: 'gutterMaterial',       itemId: 'ev3',  label: 'Material' },
+  { key: 'gutterSize',           itemId: 'ev3',  label: 'Size' },
+  { key: 'gutterDamage',         itemId: 'ev3',  label: 'Damaged' },
+  { key: 'downspoutQty',         itemId: 'ev4',  label: 'Qty' },
+  { key: 'downspoutMaterial',    itemId: 'ev4',  label: 'Material' },
+  { key: 'downspoutDamage',      itemId: 'ev4',  label: 'Damaged' },
+  { key: 'screenQty',            itemId: 'ev5',  label: 'Qty' },
+  { key: 'screenDamage',         itemId: 'ev5',  label: 'Damaged' },
+  { key: 'shutterMaterial',      itemId: 'ev6',  label: 'Material' },
+  { key: 'shutterQty',           itemId: 'ev6',  label: 'Qty' },
+  { key: 'shutterDamage',        itemId: 'ev6',  label: 'Damaged' },
+  { key: 'doorQty',              itemId: 'ev7',  label: 'Qty' },
+  { key: 'doorMaterial',         itemId: 'ev7',  label: 'Material' },
+  { key: 'stormDoor',            itemId: 'ev7',  label: 'Storm Door' },
+  { key: 'doorDamage',           itemId: 'ev7',  label: 'Damaged' },
+  { key: 'garageDoorQty',        itemId: 'ev8',  label: 'Qty' },
+  { key: 'garageDoorMaterial',   itemId: 'ev8',  label: 'Material' },
+  { key: 'garageDoorPanelStyle', itemId: 'ev8',  label: 'Panel Style' },
+  { key: 'garageDoorDamage',     itemId: 'ev8',  label: 'Damaged' },
+  { key: 'acPresent',            itemId: 'ev9',  label: 'Present' },
+  { key: 'acDamage',             itemId: 'ev9',  label: 'Damaged' },
+  { key: 'notes',                itemId: 'ev10', label: 'Notes' },
 ]
 
 // Maps AI JSON exterior keys → { itemId, fieldLabel }
@@ -178,6 +192,14 @@ export default function AIParseSection() {
   const [status, setStatus] = useState('idle') // idle | parsing | done | error
   const [statusMsg, setStatusMsg] = useState('')
   const [flags, setFlags] = useState([])
+  async function handlePaste() {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (text.trim()) setTranscript(text)
+    } catch {
+      alert('Clipboard access denied — paste manually.')
+    }
+  }
 
   async function handleParse() {
     if (!transcript.trim()) {
@@ -226,7 +248,13 @@ export default function AIParseSection() {
       </p>
 
       <div className="ai-card app-card">
-        <label className="ai-card__label">Transcript Text</label>
+        <div className="ai-card__label-row">
+          <label className="ai-card__label">Transcript Text</label>
+          {transcript
+            ? <button className="ai-transcript-btn ai-card__corner-btn" onClick={() => { setTranscript(''); setStatus('idle'); setFlags([]) }}>Clear</button>
+            : <button className="ai-transcript-btn ai-card__corner-btn" onClick={handlePaste}>Paste</button>
+          }
+        </div>
         <textarea
           className="ai-card__textarea"
           rows={12}
