@@ -143,7 +143,6 @@ export default function JobInfo() {
         onClick={() => setIsOpen(open => !open)}
       >
         <div>
-          <p className="section-eyebrow">Inspection Setup</p>
           <h2 className="card-title">Job Information</h2>
           <p className="card-subtitle">Customer, claim, contact, and assignment details.</p>
         </div>

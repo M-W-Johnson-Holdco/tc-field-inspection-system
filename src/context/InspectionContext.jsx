@@ -438,12 +438,20 @@ export function InspectionProvider({ children }) {
     setDriveSaveStatus('unsaved')
   }
 
+  function startNewInspection() {
+    setData(INITIAL_STATE)
+    setActiveTabState(0)
+    idbSave('current', { ...INITIAL_STATE, activeTab: 0 })
+    setSaveStatus('saved')
+    setDriveSaveStatus('unsaved')
+  }
+
   const completion = calculateCompletion(data)
 
   return (
     <InspectionContext.Provider value={{
       data, activeTab, setActiveTab,
-      saveStatus, driveSaveStatus, setDriveSaveStatus, completion, updateJobInfo, manualSave, resetAll, loadInspection,
+      saveStatus, driveSaveStatus, setDriveSaveStatus, completion, updateJobInfo, manualSave, resetAll, startNewInspection, loadInspection,
       toggleRoofExclude, updateRoofField,
       addRoofSubItem, removeRoofSubItem, updateRoofSubField,
       addRoofPhoto, removeRoofPhoto,

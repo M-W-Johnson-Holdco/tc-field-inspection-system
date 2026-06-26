@@ -33,6 +33,15 @@ function withinDays(dateStr, days) {
   return d >= cutoff
 }
 
+function dateTime(value) {
+  const time = new Date(value || '').getTime()
+  return Number.isFinite(time) ? time : 0
+}
+
+function sortByNewestInspection(a, b) {
+  return dateTime(b.date) - dateTime(a.date) || dateTime(b.createdTime) - dateTime(a.createdTime)
+}
+
 export default function OpenInspectionModal({ token, saveStatus, onLoad, onClose }) {
   const { setTokenExpired } = useAuth()
   const [folders, setFolders] = useState([])
@@ -49,7 +58,7 @@ export default function OpenInspectionModal({ token, saveStatus, onLoad, onClose
   useEffect(() => {
     listInspectionFolders(token)
       .then(files => {
-        setFolders(files.map(parseFolder))
+        setFolders(files.map(parseFolder).sort(sortByNewestInspection))
         setListStatus('ready')
       })
       .catch(err => {

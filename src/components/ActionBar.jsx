@@ -29,7 +29,7 @@ function getJobInfoSaveError(jobInfo) {
 }
 
 export default function ActionBar() {
-  const { activeTab, setActiveTab, resetAll, data, driveSaveStatus, setDriveSaveStatus, loadInspection } = useInspection()
+  const { activeTab, setActiveTab, resetAll, startNewInspection, data, driveSaveStatus, setDriveSaveStatus, loadInspection } = useInspection()
   const { accessToken, user, setTokenExpired } = useAuth()
   const [driveStatus, setDriveStatus] = useState('idle') // idle | saving | done | error
   const [showOpen, setShowOpen] = useState(false)
@@ -83,10 +83,8 @@ export default function ActionBar() {
   }
 
   function handleNew() {
-    if (driveSaveStatus === 'unsaved') {
-      if (!window.confirm('You have unsaved changes. Start a new inspection anyway?')) return
-    }
-    resetAll()
+    if (!window.confirm('Start a new inspection? This will clear the current form.')) return
+    startNewInspection()
     goToSection(0)
     window.scrollTo(0, 0)
   }
