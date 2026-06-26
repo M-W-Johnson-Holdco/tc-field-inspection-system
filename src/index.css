@@ -793,6 +793,12 @@ button:disabled {
   color: #1d4ed8;
 }
 
+.app-button--new {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
 .app-button--danger {
   border: 1px solid #fca5a5;
   background: #ef4444;

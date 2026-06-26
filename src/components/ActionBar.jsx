@@ -3,7 +3,7 @@ import { useInspection } from '../context/InspectionContext'
 import { useAuth } from '../context/AuthContext'
 import { saveInspectionToDrive, TokenExpiredError } from '../lib/driveService'
 import OpenInspectionModal from './OpenInspectionModal'
-import { ArrowLeft, ArrowRight, RotateCcw, Save, Upload, CheckCircle, AlertCircle, FolderOpen } from 'lucide-react'
+import { ArrowLeft, ArrowRight, RotateCcw, Save, Upload, CheckCircle, AlertCircle, FolderOpen, FilePlus } from 'lucide-react'
 
 const TOTAL_TABS = 6
 
@@ -82,6 +82,15 @@ export default function ActionBar() {
     }
   }
 
+  function handleNew() {
+    if (driveSaveStatus === 'unsaved') {
+      if (!window.confirm('You have unsaved changes. Start a new inspection anyway?')) return
+    }
+    resetAll()
+    goToSection(0)
+    window.scrollTo(0, 0)
+  }
+
   function handleOpenInspection() {
     if (!accessToken) {
       setTokenExpired(true)
@@ -138,6 +147,10 @@ export default function ActionBar() {
         <button className="app-button app-button--export" aria-label="Export" title="Export" disabled>
           <Upload className="app-button__icon" aria-hidden="true" />
           <span className="app-button__label">Export</span>
+        </button>
+        <button className="app-button app-button--new" aria-label="New inspection" title="New inspection" onClick={handleNew}>
+          <FilePlus className="app-button__icon" aria-hidden="true" />
+          <span className="app-button__label">New</span>
         </button>
         <button className="app-button app-button--reset" aria-label="Reset" title="Reset" onClick={resetAll}>
           <RotateCcw className="app-button__icon" aria-hidden="true" />
