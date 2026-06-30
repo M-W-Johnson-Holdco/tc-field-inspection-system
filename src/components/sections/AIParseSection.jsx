@@ -148,10 +148,13 @@ function applyParsed(parsed, ctx) {
 
   // Job info
   const ji = parsed.jobInfo || {}
-  const JOB_FIELDS = ['cust','phone','email','addr','pm','insp','ins','claim','date','residenceType','tenantname','tenantphone']
+  const JOB_FIELDS = ['cust','phone','email','addr','pm','insp','ins','claim','date','residenceType','tenantname','tenantphone','hasSeparateContact','contactName','contactPhone','contactEmail']
   JOB_FIELDS.forEach(f => { if (ji[f] != null) updateJobInfo(f, ji[f]) })
   if (ji.preferredContact != null) {
     updateJobInfo('preferredContact', toArray(ji.preferredContact))
+  }
+  if (ji.contactPreferredContact != null) {
+    updateJobInfo('contactPreferredContact', toArray(ji.contactPreferredContact))
   }
 
   // Notes

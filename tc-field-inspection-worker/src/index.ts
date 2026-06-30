@@ -92,8 +92,11 @@ exterior.fenceStyle: "Privacy" or "Board on Board" or "Picket"
 exterior.fencePosts: "Metal Rod" or "4x4" or "6x6"
 exterior.outdoorDamagedItems: array, values from ["Grill / Cover","Outdoor Furniture","Playset","Trampoline","Table Umbrella","Retractable Awning","Landscape Lighting","Potted Plants","Other"]
 
+jobInfo.cust: if multiple customers, separate names with a comma and space (e.g. "John Jones, Mary Jones" or "Tim Cain, Cathy Trip")
 jobInfo.residenceType: "Primary" or "Rental"
+jobInfo.hasSeparateContact: "Yes" or "No" (Yes if a separate contact person is mentioned)
 jobInfo.preferredContact: comma-separated from Phone, Email, Text
+jobInfo.contactPreferredContact: comma-separated from Phone, Email, Text (for the separate contact)
 
 Return this exact structure (use null for any field not mentioned in the transcript):
 {
@@ -101,7 +104,9 @@ Return this exact structure (use null for any field not mentioned in the transcr
     "cust": null, "phone": null, "email": null, "addr": null,
     "pm": null, "insp": null, "ins": null, "claim": null,
     "date": null, "preferredContact": null, "residenceType": null,
-    "tenantname": null, "tenantphone": null
+    "tenantname": null, "tenantphone": null,
+    "hasSeparateContact": null, "contactName": null, "contactPhone": null,
+    "contactEmail": null, "contactPreferredContact": null
   },
   "roof": {
     "shingleStyle": null, "stories": null, "layers": null, "pitch": null,

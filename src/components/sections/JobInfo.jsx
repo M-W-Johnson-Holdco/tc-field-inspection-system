@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react'
 import { useInspection } from '../../context/InspectionContext'
 
 const CONTACT_OPTIONS = ['Phone', 'Email', 'Text']
+const SEPARATE_CONTACT_OPTIONS = ['Phone', 'Email', 'Text']
 const EMPTY_ADDRESS = { address1: '', address2: '', city: '', state: '', zipcode: '' }
 
 function phoneDigits(value) {
@@ -90,6 +91,23 @@ export default function JobInfo() {
     )
   }
 
+  function toggleContactPreferred(val) {
+    const cur = ji.contactPreferredContact || []
+    updateJobInfo('contactPreferredContact',
+      cur.includes(val) ? cur.filter(v => v !== val) : [...cur, val]
+    )
+  }
+
+  function setSeparateContact(val) {
+    updateJobInfo('hasSeparateContact', val)
+    if (val === 'No') {
+      updateJobInfo('contactName', '')
+      updateJobInfo('contactPhone', '')
+      updateJobInfo('contactEmail', '')
+      updateJobInfo('contactPreferredContact', [])
+    }
+  }
+
   function setResidence(val) {
     updateJobInfo('residenceType', val)
     if (val === 'Primary') {
@@ -153,9 +171,60 @@ export default function JobInfo() {
       <div className={`collapse-panel ${isOpen ? 'collapse-panel--open' : ''}`} aria-hidden={!isOpen}>
         <div className="collapse-panel__inner">
           <div className="form-grid">
-            {field('cust', 'Customer Name(s)', { full: true, placeholder: 'John & Jane Smith', required: true })}
+            {field('cust', 'Customer Name(s)', { full: true, placeholder: 'John Jones, Mary Jones', required: true })}
             {field('phone', 'Customer Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0100', validation: 'phone', required: true })}
             {field('email', 'Customer Email', { type: 'email', placeholder: 'john@email.com', validation: 'email', required: true })}
+
+            <div className="form-field form-field--full">
+              <label className="form-label">Separate Contact?</label>
+              <div className="pill-row">
+                {['No', 'Yes'].map(val => (
+                  <div
+                    key={val}
+                    className={`select-pill ${(ji.hasSeparateContact || 'No') === val ? 'select-pill--active' : ''}`}
+                    onClick={() => setSeparateContact(val)}
+                  >
+                    {val}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {(ji.hasSeparateContact === 'Yes') && (
+              <>
+                {field('contactName', 'Contact Name', { full: true, placeholder: 'Full name' })}
+                {field('contactPhone', 'Contact Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0101', validation: 'phone' })}
+                {field('contactEmail', 'Contact Email', { type: 'email', placeholder: 'contact@email.com', validation: 'email' })}
+                <div className="form-field form-field--full">
+                  <label className="form-label">Contact Preferred Method</label>
+                  <details className="multi-select">
+                    <summary className="multi-select__summary">
+                      <span>{(ji.contactPreferredContact || []).length ? ji.contactPreferredContact.join(', ') : 'Select...'}</span>
+                      <ChevronDown className="multi-select__icon" aria-hidden="true" />
+                    </summary>
+                    <div className="multi-select__menu">
+                      {SEPARATE_CONTACT_OPTIONS.map(opt => (
+                        <label key={opt} className="multi-select__option">
+                          <input
+                            type="checkbox"
+                            checked={(ji.contactPreferredContact || []).includes(opt)}
+                            onChange={() => toggleContactPreferred(opt)}
+                          />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                  {(ji.contactPreferredContact || []).length > 0 && (
+                    <div className="multi-select__selected" aria-label="Selected contact preferred methods">
+                      {ji.contactPreferredContact.map(opt => (
+                        <span key={opt} className="multi-select__chip">{opt}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             <div className="form-field form-field--full">
               <label className="form-label">Preferred Contact Method</label>

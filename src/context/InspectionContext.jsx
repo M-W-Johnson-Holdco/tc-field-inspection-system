@@ -36,6 +36,8 @@ const INITIAL_STATE = {
     residenceType: 'Primary',
     addrParts: { address1: '', address2: '', city: '', state: '', zipcode: '' },
     tenantname: '', tenantphone: '',
+    hasSeparateContact: 'No',
+    contactName: '', contactPhone: '', contactEmail: '', contactPreferredContact: [],
   },
   roofData: INITIAL_ROOF_DATA,
   elevData: INITIAL_ELEV_DATA,
