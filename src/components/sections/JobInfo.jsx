@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { useInspection } from '../../context/InspectionContext'
+import { filterInsuranceCompanies } from '../../data/insuranceCompanies'
 
 const CONTACT_OPTIONS = ['Phone', 'Email', 'Text']
-const SEPARATE_CONTACT_OPTIONS = ['Phone', 'Email', 'Text']
 const EMPTY_ADDRESS = { address1: '', address2: '', city: '', state: '', zipcode: '' }
 
 function phoneDigits(value) {
@@ -38,6 +38,87 @@ function validateAddressParts(parts) {
 
 function hasAddressErrors(errors) {
   return Object.values(errors).some(Boolean)
+}
+
+function InsuranceField({ value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const suggestions = open ? filterInsuranceCompanies(value, 3) : []
+
+  function selectCompany(name) {
+    onChange(name)
+    setOpen(false)
+  }
+
+  return (
+    <div className={`form-field autocomplete${suggestions.length > 0 ? ' autocomplete--open' : ''}`}>
+      <label className="form-label" htmlFor="ins">Insurance Co</label>
+      <input
+        id="ins"
+        name="ins"
+        className="form-input"
+        value={value}
+        placeholder="State Farm"
+        autoComplete="off"
+        onChange={e => {
+          onChange(e.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 120)}
+      />
+      {suggestions.length > 0 && (
+        <ul className="autocomplete__menu" role="listbox" aria-label="Insurance company suggestions">
+          {suggestions.map(name => (
+            <li key={name}>
+              <button
+                type="button"
+                className="autocomplete__option"
+                role="option"
+                onMouseDown={e => {
+                  e.preventDefault()
+                  selectCompany(name)
+                }}
+              >
+                {name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function JobInfoGroup({ title, headingId, defaultOpen = true, children }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+  const panelId = `${headingId}-panel`
+
+  return (
+    <section className={`job-info-group ${isOpen ? 'job-info-group--open' : ''}`}>
+      <button
+        type="button"
+        className="job-info-group__toggle"
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        onClick={() => setIsOpen(open => !open)}
+      >
+        <h3 id={headingId} className="job-info-group__title">{title}</h3>
+        <ChevronDown className="job-info-group__chevron" aria-hidden="true" />
+      </button>
+      <div
+        id={panelId}
+        className={`collapse-panel ${isOpen ? 'collapse-panel--open' : ''}`}
+        aria-hidden={!isOpen}
+        aria-labelledby={headingId}
+      >
+        <div className="collapse-panel__inner">
+          <div className="job-info-group__content">
+            {children}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 export default function JobInfo() {
@@ -91,20 +172,12 @@ export default function JobInfo() {
     )
   }
 
-  function toggleContactPreferred(val) {
-    const cur = ji.contactPreferredContact || []
-    updateJobInfo('contactPreferredContact',
-      cur.includes(val) ? cur.filter(v => v !== val) : [...cur, val]
-    )
-  }
-
   function setSeparateContact(val) {
     updateJobInfo('hasSeparateContact', val)
-    if (val === 'No') {
+    if (val !== 'Yes') {
       updateJobInfo('contactName', '')
       updateJobInfo('contactPhone', '')
       updateJobInfo('contactEmail', '')
-      updateJobInfo('contactPreferredContact', [])
     }
   }
 
@@ -170,127 +243,105 @@ export default function JobInfo() {
       </button>
       <div className={`collapse-panel ${isOpen ? 'collapse-panel--open' : ''}`} aria-hidden={!isOpen}>
         <div className="collapse-panel__inner">
-          <div className="form-grid">
-            {field('cust', 'Customer Name(s)', { full: true, placeholder: 'John Jones, Mary Jones', required: true })}
-            {field('phone', 'Customer Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0100', validation: 'phone', required: true })}
-            {field('email', 'Customer Email', { type: 'email', placeholder: 'john@email.com', validation: 'email', required: true })}
+          <div className="job-info-groups">
+            <JobInfoGroup title="Customer & Contact" headingId="job-info-customer-heading">
+              <div className="form-grid">
+                {field('cust', 'Customer Name(s)', { full: true, placeholder: 'John Jones, Mary Jones', required: true })}
+                {field('phone', 'Customer Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0100', validation: 'phone', required: true })}
+                {field('email', 'Customer Email', { type: 'email', placeholder: 'john@email.com', validation: 'email', required: true })}
 
-            <div className="form-field form-field--full">
-              <label className="form-label">Separate Contact?</label>
-              <div className="pill-row">
-                {['No', 'Yes'].map(val => (
-                  <div
-                    key={val}
-                    className={`select-pill ${(ji.hasSeparateContact || 'No') === val ? 'select-pill--active' : ''}`}
-                    onClick={() => setSeparateContact(val)}
-                  >
-                    {val}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {(ji.hasSeparateContact === 'Yes') && (
-              <>
-                {field('contactName', 'Contact Name', { full: true, placeholder: 'Full name' })}
-                {field('contactPhone', 'Contact Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0101', validation: 'phone' })}
-                {field('contactEmail', 'Contact Email', { type: 'email', placeholder: 'contact@email.com', validation: 'email' })}
                 <div className="form-field form-field--full">
-                  <label className="form-label">Contact Preferred Method</label>
+                  <label className="form-label">Separate Contact?</label>
+                  <select
+                    className="field-select compact-select"
+                    value={ji.hasSeparateContact || ''}
+                    onChange={e => setSeparateContact(e.target.value)}
+                  >
+                    <option value="">Select...</option>
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+
+                {(ji.hasSeparateContact === 'Yes') && (
+                  <>
+                    {field('contactName', 'Contact Name', { full: true, placeholder: 'Full name' })}
+                    {field('contactPhone', 'Contact Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0101', validation: 'phone' })}
+                    {field('contactEmail', 'Contact Email', { type: 'email', placeholder: 'contact@email.com', validation: 'email' })}
+                  </>
+                )}
+
+                <div className="form-field form-field--full">
+                  <label className="form-label">Preferred Contact Method</label>
                   <details className="multi-select">
                     <summary className="multi-select__summary">
-                      <span>{(ji.contactPreferredContact || []).length ? ji.contactPreferredContact.join(', ') : 'Select...'}</span>
+                      <span>{(ji.preferredContact || []).length ? ji.preferredContact.join(', ') : 'Select...'}</span>
                       <ChevronDown className="multi-select__icon" aria-hidden="true" />
                     </summary>
                     <div className="multi-select__menu">
-                      {SEPARATE_CONTACT_OPTIONS.map(opt => (
+                      {CONTACT_OPTIONS.map(opt => (
                         <label key={opt} className="multi-select__option">
                           <input
                             type="checkbox"
-                            checked={(ji.contactPreferredContact || []).includes(opt)}
-                            onChange={() => toggleContactPreferred(opt)}
+                            checked={(ji.preferredContact || []).includes(opt)}
+                            onChange={() => toggleContact(opt)}
                           />
                           {opt}
                         </label>
                       ))}
                     </div>
                   </details>
-                  {(ji.contactPreferredContact || []).length > 0 && (
-                    <div className="multi-select__selected" aria-label="Selected contact preferred methods">
-                      {ji.contactPreferredContact.map(opt => (
+                  {(ji.preferredContact || []).length > 0 && (
+                    <div className="multi-select__selected" aria-label="Selected preferred contact methods">
+                      {ji.preferredContact.map(opt => (
                         <span key={opt} className="multi-select__chip">{opt}</span>
                       ))}
                     </div>
                   )}
                 </div>
-              </>
-            )}
-
-            <div className="form-field form-field--full">
-              <label className="form-label">Preferred Contact Method</label>
-              <details className="multi-select">
-                <summary className="multi-select__summary">
-                  <span>{(ji.preferredContact || []).length ? ji.preferredContact.join(', ') : 'Select...'}</span>
-                  <ChevronDown className="multi-select__icon" aria-hidden="true" />
-                </summary>
-                <div className="multi-select__menu">
-                  {CONTACT_OPTIONS.map(opt => (
-                    <label key={opt} className="multi-select__option">
-                      <input
-                        type="checkbox"
-                        checked={(ji.preferredContact || []).includes(opt)}
-                        onChange={() => toggleContact(opt)}
-                      />
-                      {opt}
-                    </label>
-                  ))}
-                </div>
-              </details>
-              {(ji.preferredContact || []).length > 0 && (
-                <div className="multi-select__selected" aria-label="Selected preferred contact methods">
-                  {ji.preferredContact.map(opt => (
-                    <span key={opt} className="multi-select__chip">{opt}</span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="form-field form-field--full">
-              <label className="form-label">Residence Type</label>
-              <div className="pill-row">
-                {['Primary', 'Rental'].map(val => (
-                  <div
-                    key={val}
-                    className={`select-pill ${ji.residenceType === val ? 'select-pill--active' : ''}`}
-                    onClick={() => setResidence(val)}
-                  >
-                    {val === 'Primary' ? 'Primary Residence' : 'Rental Property'}
-                  </div>
-                ))}
               </div>
-            </div>
+            </JobInfoGroup>
 
-            <div className="form-field form-field--full">
-              <label className="form-label">Property Address <span className="required-star">*</span></label>
-              <button
-                type="button"
-                className={`address-trigger ${ji.addr ? '' : 'address-trigger--empty'}`}
-                onClick={openAddressPopup}
-              >
-                {ji.addr || 'Tap to enter property address'}
-              </button>
-            </div>
-            {ji.residenceType === 'Rental' && (
-              <>
-                {field('tenantname', 'Tenant Name', { placeholder: 'Tenant full name' })}
-                {field('tenantphone', 'Tenant Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0101', validation: 'phone' })}
-              </>
-            )}
-            {field('pm', 'Project Manager', { placeholder: 'Name' })}
-            {field('insp', 'Inspector / Rep', { placeholder: 'Name' })}
-            {field('ins', 'Insurance Co', { placeholder: 'State Farm' })}
-            {field('claim', 'Claim #', { placeholder: 'Pending if not filed' })}
-            {field('date', 'Date', { type: 'date' })}
+            <JobInfoGroup title="Property Details" headingId="job-info-property-heading">
+              <div className="form-grid">
+                <div className="form-field form-field--full">
+                  <label className="form-label">Property Type</label>
+                  <select
+                    className="field-select compact-select"
+                    value={ji.residenceType || 'Primary'}
+                    onChange={e => setResidence(e.target.value)}
+                  >
+                    <option value="Primary">Primary Property</option>
+                    <option value="Secondary">Secondary Property</option>
+                    <option value="Rental">Rental Property</option>
+                  </select>
+                </div>
+
+                <div className="form-field form-field--full">
+                  <label className="form-label">Property Address <span className="required-star">*</span></label>
+                  <button
+                    type="button"
+                    className={`address-trigger ${ji.addr ? '' : 'address-trigger--empty'}`}
+                    onClick={openAddressPopup}
+                  >
+                    {ji.addr || 'Tap to enter property address'}
+                  </button>
+                </div>
+
+                {ji.residenceType === 'Rental' && (
+                  <>
+                    {field('tenantname', 'Tenant Name', { placeholder: 'Tenant full name' })}
+                    {field('tenantphone', 'Tenant Phone', { type: 'tel', inputMode: 'tel', placeholder: '(214) 555-0101', validation: 'phone' })}
+                  </>
+                )}
+
+                {field('pm', 'Project Manager', { placeholder: 'Name' })}
+                {field('insp', 'Inspector / Rep', { placeholder: 'Name' })}
+                <InsuranceField value={ji.ins || ''} onChange={val => updateJobInfo('ins', val)} />
+                {field('claim', 'Claim #', { placeholder: 'Pending if not filed' })}
+                {field('date', 'Date', { type: 'date' })}
+              </div>
+            </JobInfoGroup>
           </div>
         </div>
       </div>

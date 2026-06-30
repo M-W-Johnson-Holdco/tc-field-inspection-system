@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Camera, ChevronDown, FolderOpen } from 'lucide-react'
 import { useInspection } from '../../context/InspectionContext'
 import { EXTERIOR_ITEMS, EXTERIOR_SUBSECTIONS } from '../../data/exteriorItems'
+import { fieldGroupClass } from '../../utils/fieldLayout'
 
 // ── Field Renderer ─────────────────────────────────────────────────
 function isLinearMeasurementField(field) {
@@ -35,7 +36,7 @@ function MeasurementInput({ field, value, onChange }) {
   }
 
   return (
-    <div className="field-group">
+    <div className={fieldGroupClass(field)}>
       <label className="form-label">{field.l}</label>
       <div className="measurement-input">
         <label className="measurement-input__part">
@@ -74,7 +75,7 @@ function FieldRenderer({ field, value, onChange }) {
   if (t === 'yn' || t === 'radio') {
     const opts = t === 'yn' ? ['Yes', 'No'] : o
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <select
           className="field-select compact-select"
@@ -91,7 +92,7 @@ function FieldRenderer({ field, value, onChange }) {
   if (t === 'multiRadio' || t === 'multi' || t === 'toggleMulti') {
     const arr = Array.isArray(value) ? value : []
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <details className="multi-select">
           <summary className="multi-select__summary">
@@ -122,7 +123,7 @@ function FieldRenderer({ field, value, onChange }) {
 
   if (t === 'textarea') {
     return (
-      <div className="field-group field-group--full">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <textarea
           className="field-textarea"
@@ -146,7 +147,7 @@ function FieldRenderer({ field, value, onChange }) {
     }
     const inputCh = Math.max(String(value || p || '').length, 3)
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <div className="number-stepper">
           <button type="button" className="number-stepper__btn" onClick={() => adjustValue(-1)} aria-label={`Decrease ${l}`}>−</button>
@@ -168,7 +169,7 @@ function FieldRenderer({ field, value, onChange }) {
 
   const inputCh = Math.max(String(value || p || '').length, 3)
   return (
-    <div className="field-group">
+    <div className={fieldGroupClass(field)}>
       {lbl}
       <input
         className="field-input"
@@ -185,7 +186,7 @@ function FieldRenderer({ field, value, onChange }) {
 // ── Photo Zone ────────────────────────────────────────────────────
 function PhotoZone({ itemId, photos, trigPhoto, onRemove }) {
   return (
-    <div className="ri-photo-zone">
+    <div className="ri-photo-zone field-group field-group--compact">
       <span className="ri-photo-label">Photos</span>
       {photos.length > 0 && (
         <div className="ri-photo-row">
@@ -259,11 +260,19 @@ function ExteriorItem({ itemDef, trigPhoto }) {
                 onChange={val => updateExteriorField(id, f.l, val)}
               />
             ))}
+            {hasP && (
+              <PhotoZone
+                itemId={id}
+                photos={photos}
+                trigPhoto={trigPhoto}
+                onRemove={removeExteriorPhoto}
+              />
+            )}
           </div>
 
           {hasD && (
             <div className="ri-damage-row">
-              <div className="field-group">
+              <div className="field-group field-group--compact">
                 <label className="form-label">Damaged</label>
                 <select
                   className="field-select compact-select"
@@ -289,14 +298,6 @@ function ExteriorItem({ itemDef, trigPhoto }) {
             </div>
           )}
 
-          {hasP && (
-            <PhotoZone
-              itemId={id}
-              photos={photos}
-              trigPhoto={trigPhoto}
-              onRemove={removeExteriorPhoto}
-            />
-          )}
         </div>
       )}
     </div>

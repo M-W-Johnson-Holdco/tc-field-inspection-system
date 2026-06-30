@@ -14,7 +14,7 @@ export const ROOF_ITEMS = [
       { t: 'multiRadio', l: 'Style', o: ['3-Tab', 'Architectural', 'Designer', 'Disco', 'Impact Resistant'] },
       { t: 'num', l: 'Stories' },
       { t: 'num', l: 'Layers' },
-      { t: 'txt', l: 'Predominant Pitch', p: '4/12' },
+      { t: 'pitch', l: 'Predominant Pitch', p: '4/12' },
     ],
   },
   {

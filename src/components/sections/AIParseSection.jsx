@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useInspection } from '../../context/InspectionContext'
+import { formatPitch, parsePitchNumerator } from '../../utils/pitch'
 
 const WORKER_URL = 'https://tc-field-inspection-worker.k-liss.workers.dev'
 
@@ -167,6 +168,7 @@ function applyParsed(parsed, ctx) {
     let val = roof[key]
     if (val == null) return
     if (key === 'chimneySize') val = normalizeChimneySize(val)
+    if (key === 'pitch') val = formatPitch(parsePitchNumerator(val, 0))
     if (key === 'shingleStyle' || key === 'exhaustStackDamageTo') val = toArray(val)
     updateRoofField(itemId, label, val)
   })

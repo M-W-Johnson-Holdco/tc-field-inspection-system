@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Camera, ChevronDown, FolderOpen } from 'lucide-react'
 import { useInspection } from '../../context/InspectionContext'
 import { ELEV_ITEMS, DIRECTIONS } from '../../data/elevItems'
+import { fieldGroupClass } from '../../utils/fieldLayout'
 
 // ── Field Renderer — mirrors Cursor's RoofSection pattern ─────────
 function FieldRenderer({ field, value, onChange }) {
@@ -11,7 +12,7 @@ function FieldRenderer({ field, value, onChange }) {
   if (t === 'yn' || t === 'radio') {
     const opts = t === 'yn' ? ['Yes', 'No'] : o
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <select
           className="field-select compact-select"
@@ -30,7 +31,7 @@ function FieldRenderer({ field, value, onChange }) {
   if (t === 'multiRadio' || t === 'multi') {
     const arr = Array.isArray(value) ? value : []
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <details className="multi-select">
           <summary className="multi-select__summary">
@@ -68,7 +69,7 @@ function FieldRenderer({ field, value, onChange }) {
 
   if (t === 'select') {
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <select
           className="field-select"
@@ -85,7 +86,7 @@ function FieldRenderer({ field, value, onChange }) {
 
   if (t === 'textarea') {
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <textarea
           className="field-textarea"
@@ -101,7 +102,7 @@ function FieldRenderer({ field, value, onChange }) {
     const cur = value === '' || value == null ? 0 : Number(value)
     const adj = n => onChange(String(Math.max(0, (Number.isFinite(cur) ? cur : 0) + n)))
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <div className="number-stepper">
           <button type="button" className="number-stepper__btn" onClick={() => adj(-1)}>−</button>
@@ -137,7 +138,7 @@ function FieldRenderer({ field, value, onChange }) {
 // ── Photo Zone ────────────────────────────────────────────────────
 function PhotoZone({ cellKey, photos, trigPhoto, onRemove }) {
   return (
-    <div className="ri-photo-zone">
+    <div className="ri-photo-zone field-group field-group--compact">
       <span className="ri-photo-label">Photos</span>
       {photos.length > 0 && (
         <div className="ri-photo-row">
@@ -214,6 +215,12 @@ function ElevItem({ itemDef, direction, trigPhoto }) {
                 onChange={val => updateElevField(cellKey, f.l, val)}
               />
             ))}
+            <PhotoZone
+              cellKey={cellKey}
+              photos={photos}
+              trigPhoto={trigPhoto}
+              onRemove={removeElevPhoto}
+            />
           </div>
 
           {cell.fields['Damaged'] === 'Yes' && (
@@ -228,12 +235,6 @@ function ElevItem({ itemDef, direction, trigPhoto }) {
             </div>
           )}
 
-          <PhotoZone
-            cellKey={cellKey}
-            photos={photos}
-            trigPhoto={trigPhoto}
-            onRemove={removeElevPhoto}
-          />
         </div>
       )}
     </div>

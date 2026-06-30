@@ -93,7 +93,7 @@ exterior.fencePosts: "Metal Rod" or "4x4" or "6x6"
 exterior.outdoorDamagedItems: array, values from ["Grill / Cover","Outdoor Furniture","Playset","Trampoline","Table Umbrella","Retractable Awning","Landscape Lighting","Potted Plants","Other"]
 
 jobInfo.cust: if multiple customers, separate names with a comma and space (e.g. "John Jones, Mary Jones" or "Tim Cain, Cathy Trip")
-jobInfo.residenceType: "Primary" or "Rental"
+jobInfo.residenceType: "Primary", "Secondary", or "Rental" property type
 jobInfo.hasSeparateContact: "Yes" or "No" (Yes if a separate contact person is mentioned)
 jobInfo.preferredContact: comma-separated from Phone, Email, Text
 jobInfo.contactPreferredContact: comma-separated from Phone, Email, Text (for the separate contact)

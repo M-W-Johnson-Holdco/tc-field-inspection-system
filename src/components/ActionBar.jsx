@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useInspection } from '../context/InspectionContext'
 import { useAuth } from '../context/AuthContext'
 import { saveInspectionToDrive, TokenExpiredError } from '../lib/driveService'
@@ -8,6 +8,27 @@ import { parseXmlMeasurements } from '../lib/parseXmlMeasurements'
 import { ArrowLeft, ArrowRight, RotateCcw, Save, ExternalLink, CheckCircle, AlertCircle, FolderOpen, FilePlus, CircleHelp, MoreHorizontal, FileInput } from 'lucide-react'
 
 const TOTAL_TABS = 6
+const TOOLBAR_SCALE_KEY = 'tc_toolbar_scale'
+const TOOLBAR_SCALE_MIN = 0.75
+const TOOLBAR_SCALE_MAX = 1.6
+const TOOLBAR_SCALE_DEFAULT = 1
+
+function readToolbarScale() {
+  const stored = Number(localStorage.getItem(TOOLBAR_SCALE_KEY))
+  if (!Number.isFinite(stored)) return TOOLBAR_SCALE_DEFAULT
+  return Math.min(TOOLBAR_SCALE_MAX, Math.max(TOOLBAR_SCALE_MIN, stored))
+}
+
+function clampToolbarScale(value) {
+  return Math.min(TOOLBAR_SCALE_MAX, Math.max(TOOLBAR_SCALE_MIN, value))
+}
+
+function getTouchDistance(touches) {
+  return Math.hypot(
+    touches[0].clientX - touches[1].clientX,
+    touches[0].clientY - touches[1].clientY,
+  )
+}
 
 function phoneDigits(value) {
   return String(value || '').replace(/\D/g, '')
@@ -38,9 +59,73 @@ export default function ActionBar() {
   const [showHelp, setShowHelp] = useState(false)
   const [showMore, setShowMore] = useState(false)
   const [xmlParsed, setXmlParsed] = useState(null)
+  const [toolbarScale, setToolbarScale] = useState(readToolbarScale)
   const xmlInputRef = useRef(null)
+  const actionBarRef = useRef(null)
+  const toolbarScaleRef = useRef(toolbarScale)
+  const pinchStateRef = useRef(null)
   const canGoBack = activeTab > 0
   const canGoNext = activeTab < TOTAL_TABS - 1
+
+  useEffect(() => {
+    toolbarScaleRef.current = toolbarScale
+  }, [toolbarScale])
+
+  useEffect(() => {
+    const bar = actionBarRef.current
+    if (!bar) return undefined
+
+    function handleTouchStart(e) {
+      if (e.touches.length !== 2) return
+      pinchStateRef.current = {
+        startDistance: getTouchDistance(e.touches),
+        startScale: toolbarScaleRef.current,
+      }
+    }
+
+    function handleTouchMove(e) {
+      if (e.touches.length !== 2 || !pinchStateRef.current) return
+      e.preventDefault()
+      const distance = getTouchDistance(e.touches)
+      const ratio = distance / pinchStateRef.current.startDistance
+      const next = clampToolbarScale(pinchStateRef.current.startScale * ratio)
+      toolbarScaleRef.current = next
+      setToolbarScale(next)
+    }
+
+    function finishPinch() {
+      if (!pinchStateRef.current) return
+      pinchStateRef.current = null
+      localStorage.setItem(TOOLBAR_SCALE_KEY, String(toolbarScaleRef.current))
+    }
+
+    function handleTouchEnd() {
+      finishPinch()
+    }
+
+    function handleWheel(e) {
+      if (!e.ctrlKey) return
+      e.preventDefault()
+      const next = clampToolbarScale(toolbarScaleRef.current + (e.deltaY > 0 ? -0.04 : 0.04))
+      toolbarScaleRef.current = next
+      setToolbarScale(next)
+      localStorage.setItem(TOOLBAR_SCALE_KEY, String(next))
+    }
+
+    bar.addEventListener('touchstart', handleTouchStart, { passive: true })
+    bar.addEventListener('touchmove', handleTouchMove, { passive: false })
+    bar.addEventListener('touchend', handleTouchEnd, { passive: true })
+    bar.addEventListener('touchcancel', handleTouchEnd, { passive: true })
+    bar.addEventListener('wheel', handleWheel, { passive: false })
+
+    return () => {
+      bar.removeEventListener('touchstart', handleTouchStart)
+      bar.removeEventListener('touchmove', handleTouchMove)
+      bar.removeEventListener('touchend', handleTouchEnd)
+      bar.removeEventListener('touchcancel', handleTouchEnd)
+      bar.removeEventListener('wheel', handleWheel)
+    }
+  }, [])
 
   function scrollToSectionTop() {
     requestAnimationFrame(() => {
@@ -150,7 +235,13 @@ export default function ActionBar() {
         style={{ display: 'none' }}
         onChange={handleXmlFile}
       />
-      <div className="action-bar">
+      <div
+        ref={actionBarRef}
+        className="action-bar"
+        style={{ '--toolbar-scale': toolbarScale }}
+        title="Pinch with two fingers to resize toolbar"
+        aria-label="Inspection toolbar. Pinch with two fingers to resize."
+      >
         <button className={`app-button app-button--secondary ${canGoBack ? 'app-button--active-nav' : ''}`} aria-label="Back" title="Back" onClick={() => goToSection(Math.max(0, activeTab - 1))} disabled={!canGoBack}>
           <ArrowLeft className="app-button__icon" aria-hidden="true" />
           <span className="app-button__label">Back</span>
@@ -269,6 +360,7 @@ export default function ActionBar() {
               <p><FilePlus className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>New:</strong> Start a new inspection form.</span></p>
               <p><FileInput className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Import XML:</strong> Upload a measurements XML file to autofill address, pitch, and roof measurements.</span></p>
               <p><RotateCcw className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Reset:</strong> Clear all current inspection data.</span></p>
+              <p><MoreHorizontal className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Resize:</strong> Pinch the toolbar with two fingers to make it bigger or smaller. On desktop, use Ctrl + scroll over the toolbar.</span></p>
             </div>
           </div>
         </>

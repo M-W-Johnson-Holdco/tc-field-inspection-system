@@ -2,6 +2,8 @@ import { useRef, useState } from 'react'
 import { Camera, ChevronDown, FolderOpen } from 'lucide-react'
 import { useInspection } from '../../context/InspectionContext'
 import { ROOF_ITEMS, SUBSECTIONS } from '../../data/roofItems'
+import { fieldGroupClass } from '../../utils/fieldLayout'
+import { formatPitch, parsePitchNumerator } from '../../utils/pitch'
 
 // ── Field Renderer ─────────────────────────────────────────────────
 function isLinearMeasurementField(field) {
@@ -35,7 +37,7 @@ function MeasurementInput({ field, value, onChange }) {
   }
 
   return (
-    <div className="field-group">
+    <div className={fieldGroupClass(field)}>
       <label className="form-label">{field.l}</label>
       <div className="measurement-input">
         <label className="measurement-input__part">
@@ -67,6 +69,61 @@ function MeasurementInput({ field, value, onChange }) {
   )
 }
 
+function PitchInput({ field, value, onChange }) {
+  const placeholderNum = parsePitchNumerator(field.p, 4)
+  const numerator = value ? parsePitchNumerator(value, 0) : null
+
+  function adjust(delta) {
+    const base = value ? parsePitchNumerator(value, 0) : 0
+    onChange(formatPitch(base + delta))
+  }
+
+  return (
+    <div className={fieldGroupClass(field)}>
+      <label className="form-label">{field.l}</label>
+      <div className="number-stepper number-stepper--pitch">
+        <button
+          type="button"
+          className="number-stepper__btn"
+          aria-label={`Decrease ${field.l}`}
+          onClick={() => adjust(-1)}
+        >
+          −
+        </button>
+        <div className="number-stepper__pitch-value">
+          <input
+            className="field-input number-stepper__input number-stepper__pitch-input"
+            type="number"
+            inputMode="numeric"
+            min="0"
+            step="1"
+            value={numerator == null ? '' : numerator}
+            placeholder={String(placeholderNum)}
+            aria-label={`${field.l} numerator`}
+            onChange={e => {
+              const raw = e.target.value
+              if (raw === '') {
+                onChange('')
+                return
+              }
+              onChange(formatPitch(raw))
+            }}
+          />
+          <span className="number-stepper__pitch-suffix" aria-hidden="true">/12</span>
+        </div>
+        <button
+          type="button"
+          className="number-stepper__btn"
+          aria-label={`Increase ${field.l}`}
+          onClick={() => adjust(1)}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function FieldRenderer({ field, value, onChange }) {
   const { t, l, o, p } = field
   const lbl = <label className="form-label">{l}</label>
@@ -74,7 +131,7 @@ function FieldRenderer({ field, value, onChange }) {
   if (t === 'yn' || t === 'radio') {
     const opts = t === 'yn' ? ['Yes', 'No'] : o
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <select
           className="field-select compact-select"
@@ -93,7 +150,7 @@ function FieldRenderer({ field, value, onChange }) {
   if (t === 'multiRadio' || t === 'multi') {
     const arr = Array.isArray(value) ? value : []
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <details className="multi-select">
           <summary className="multi-select__summary">
@@ -131,7 +188,7 @@ function FieldRenderer({ field, value, onChange }) {
 
   if (t === 'select') {
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <select
           className="field-select"
@@ -148,7 +205,7 @@ function FieldRenderer({ field, value, onChange }) {
 
   if (t === 'textarea') {
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <textarea
           className="field-textarea"
@@ -166,6 +223,10 @@ function FieldRenderer({ field, value, onChange }) {
     return <MeasurementInput field={field} value={value} onChange={onChange} />
   }
 
+  if (t === 'pitch') {
+    return <PitchInput field={field} value={value} onChange={onChange} />
+  }
+
   if (t === 'num') {
     const currentValue = value === '' || value == null ? 0 : Number(value)
     const adjustValue = amount => {
@@ -174,7 +235,7 @@ function FieldRenderer({ field, value, onChange }) {
     }
 
     return (
-      <div className="field-group">
+      <div className={fieldGroupClass(field)}>
         {lbl}
         <div className="number-stepper">
           <button
@@ -210,7 +271,7 @@ function FieldRenderer({ field, value, onChange }) {
   }
 
   return (
-    <div className="field-group">
+    <div className={fieldGroupClass(field)}>
       {lbl}
       <input
         className="field-input"
@@ -228,7 +289,7 @@ function FieldRenderer({ field, value, onChange }) {
 // ── Photo Zone ────────────────────────────────────────────────────
 function PhotoZone({ itemId, photos, trigPhoto, onRemove }) {
   return (
-    <div className="ri-photo-zone">
+    <div className="ri-photo-zone field-group field-group--compact">
       <span className="ri-photo-label">Photos</span>
       {photos.length > 0 && (
         <div className="ri-photo-row">
@@ -321,6 +382,14 @@ function CheckItem({ itemDef, trigPhoto }) {
                 onChange={val => updateRoofField(id, f.l, val)}
               />
             ))}
+            {hasP && (
+              <PhotoZone
+                itemId={id}
+                photos={photos}
+                trigPhoto={trigPhoto}
+                onRemove={removeRoofPhoto}
+              />
+            )}
           </div>
 
           {hasD && (
@@ -383,14 +452,6 @@ function CheckItem({ itemDef, trigPhoto }) {
             </div>
           )}
 
-          {hasP && (
-            <PhotoZone
-              itemId={id}
-              photos={photos}
-              trigPhoto={trigPhoto}
-              onRemove={removeRoofPhoto}
-            />
-          )}
         </div>
       )}
     </div>
