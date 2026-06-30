@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useInspection } from '../context/InspectionContext'
 import { useAuth } from '../context/AuthContext'
 import { saveInspectionToDrive, TokenExpiredError } from '../lib/driveService'
 import OpenInspectionModal from './OpenInspectionModal'
-import { ArrowLeft, ArrowRight, RotateCcw, Save, ExternalLink, CheckCircle, AlertCircle, FolderOpen, FilePlus, CircleHelp, MoreHorizontal } from 'lucide-react'
+import XmlImportModal from './XmlImportModal'
+import { parseXmlMeasurements } from '../lib/parseXmlMeasurements'
+import { ArrowLeft, ArrowRight, RotateCcw, Save, ExternalLink, CheckCircle, AlertCircle, FolderOpen, FilePlus, CircleHelp, MoreHorizontal, FileInput } from 'lucide-react'
 
 const TOTAL_TABS = 6
 
@@ -29,12 +31,14 @@ function getJobInfoSaveError(jobInfo) {
 }
 
 export default function ActionBar() {
-  const { activeTab, setActiveTab, resetAll, startNewInspection, data, driveSaveStatus, setDriveSaveStatus, loadInspection } = useInspection()
+  const { activeTab, setActiveTab, resetAll, startNewInspection, data, driveSaveStatus, setDriveSaveStatus, loadInspection, applyXmlImport } = useInspection()
   const { accessToken, user, setTokenExpired } = useAuth()
   const [driveStatus, setDriveStatus] = useState('idle') // idle | saving | done | error
   const [showOpen, setShowOpen] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [showMore, setShowMore] = useState(false)
+  const [xmlParsed, setXmlParsed] = useState(null)
+  const xmlInputRef = useRef(null)
   const canGoBack = activeTab > 0
   const canGoNext = activeTab < TOTAL_TABS - 1
 
@@ -84,6 +88,32 @@ export default function ActionBar() {
     }
   }
 
+  function handleImportXml() {
+    setShowMore(false)
+    xmlInputRef.current?.click()
+  }
+
+  function handleXmlFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => {
+      try {
+        const parsed = parseXmlMeasurements(ev.target.result)
+        setXmlParsed(parsed)
+      } catch {
+        window.alert('Could not read the XML file. Make sure it is a valid measurements export.')
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  function handleXmlApply() {
+    applyXmlImport(xmlParsed)
+    setXmlParsed(null)
+  }
+
   function handleNew() {
     setShowMore(false)
     if (!window.confirm('Start a new inspection? This will clear the current form.')) return
@@ -113,6 +143,13 @@ export default function ActionBar() {
 
   return (
     <>
+      <input
+        ref={xmlInputRef}
+        type="file"
+        accept=".xml,application/xml,text/xml"
+        style={{ display: 'none' }}
+        onChange={handleXmlFile}
+      />
       <div className="action-bar">
         <button className={`app-button app-button--secondary ${canGoBack ? 'app-button--active-nav' : ''}`} aria-label="Back" title="Back" onClick={() => goToSection(Math.max(0, activeTab - 1))} disabled={!canGoBack}>
           <ArrowLeft className="app-button__icon" aria-hidden="true" />
@@ -148,6 +185,9 @@ export default function ActionBar() {
                 disabled={driveStatus === 'saving'}
               >
                 <SaveIcon className="toolbar-more__icon" aria-hidden="true" />
+              </button>
+              <button className="toolbar-more__item" type="button" role="menuitem" aria-label="Import XML measurements" title="Import XML measurements" onClick={handleImportXml}>
+                <FileInput className="toolbar-more__icon" aria-hidden="true" />
               </button>
               <button className="toolbar-more__item" type="button" role="menuitem" aria-label="New inspection" title="New inspection" onClick={handleNew}>
                 <FilePlus className="toolbar-more__icon" aria-hidden="true" />
@@ -186,6 +226,20 @@ export default function ActionBar() {
         </button>
       </div>
 
+      {xmlParsed && (
+        <XmlImportModal
+          parsed={xmlParsed}
+          existing={{
+            addr: data.jobInfo?.addr,
+            pitch: data.roofData?.ri0?.fields?.['Predominant Pitch'],
+            ridgeLF: data.roofData?.ri6?.fields?.['Length (LF)'],
+            valleyPresent: data.roofData?.ri5?.fields?.['Present'] === 'Yes',
+          }}
+          onApply={handleXmlApply}
+          onClose={() => setXmlParsed(null)}
+        />
+      )}
+
       {showOpen && accessToken && (
         <OpenInspectionModal
           token={accessToken}
@@ -213,6 +267,7 @@ export default function ActionBar() {
               <p><FolderOpen className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Open:</strong> Open a saved inspection from Google Drive.</span></p>
               <p><ExternalLink className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Export:</strong> Reserved for exporting inspection reports.</span></p>
               <p><FilePlus className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>New:</strong> Start a new inspection form.</span></p>
+              <p><FileInput className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Import XML:</strong> Upload a measurements XML file to autofill address, pitch, and roof measurements.</span></p>
               <p><RotateCcw className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Reset:</strong> Clear all current inspection data.</span></p>
             </div>
           </div>

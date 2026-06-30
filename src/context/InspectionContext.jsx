@@ -402,6 +402,47 @@ export function InspectionProvider({ children }) {
 
   // ─────────────────────────────────────────────────────────────────
 
+  function applyXmlImport(parsed) {
+    setData(prev => {
+      let next = { ...prev }
+
+      if (parsed.address?.address1) {
+        const a = parsed.address
+        const addressLine = a.address1
+        const formatted = `${addressLine}, ${a.city}, ${a.state} ${a.zipcode}`
+        next = {
+          ...next,
+          jobInfo: {
+            ...next.jobInfo,
+            addrParts: { address1: a.address1, address2: '', city: a.city, state: a.state, zipcode: a.zipcode },
+            addr: formatted,
+          },
+        }
+      }
+
+      const roofData = { ...next.roofData }
+
+      if (parsed.pitch) {
+        const ri0 = roofData.ri0
+        roofData.ri0 = { ...ri0, fields: { ...ri0.fields, 'Predominant Pitch': parsed.pitch } }
+      }
+
+      if (parsed.valleyPresent) {
+        const ri5 = roofData.ri5
+        roofData.ri5 = { ...ri5, fields: { ...ri5.fields, 'Present': 'Yes' } }
+      }
+
+      if (parsed.lineLengths?.RIDGE > 0) {
+        const ri6 = roofData.ri6
+        roofData.ri6 = { ...ri6, fields: { ...ri6.fields, 'Length (LF)': String(parsed.lineLengths.RIDGE) } }
+      }
+
+      next = { ...next, roofData }
+      scheduleSave(next)
+      return next
+    })
+  }
+
   function manualSave() {
     setSaveStatus('saving')
     idbSave('current', { ...data, activeTab })
@@ -451,7 +492,7 @@ export function InspectionProvider({ children }) {
   return (
     <InspectionContext.Provider value={{
       data, activeTab, setActiveTab,
-      saveStatus, driveSaveStatus, setDriveSaveStatus, completion, updateJobInfo, manualSave, resetAll, startNewInspection, loadInspection,
+      saveStatus, driveSaveStatus, setDriveSaveStatus, completion, updateJobInfo, manualSave, resetAll, startNewInspection, loadInspection, applyXmlImport,
       toggleRoofExclude, updateRoofField,
       addRoofSubItem, removeRoofSubItem, updateRoofSubField,
       addRoofPhoto, removeRoofPhoto,
