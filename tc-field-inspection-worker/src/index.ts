@@ -208,7 +208,7 @@ Return this exact structure (use null for any field not mentioned in the transcr
 				'anthropic-version': '2023-06-01',
 			},
 			body: JSON.stringify({
-				model: 'claude-sonnet-4-6',
+				model: 'claude-sonnet-4-6-20251001',
 				max_tokens: 4096,
 				system: systemPrompt,
 				messages: [{ role: 'user', content: `TRANSCRIPT:\n\n${transcript}` }],
