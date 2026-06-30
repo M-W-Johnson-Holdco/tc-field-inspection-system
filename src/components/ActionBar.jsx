@@ -3,7 +3,7 @@ import { useInspection } from '../context/InspectionContext'
 import { useAuth } from '../context/AuthContext'
 import { saveInspectionToDrive, TokenExpiredError } from '../lib/driveService'
 import OpenInspectionModal from './OpenInspectionModal'
-import { ArrowLeft, ArrowRight, RotateCcw, Save, Upload, CheckCircle, AlertCircle, FolderOpen, FilePlus, CircleHelp, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, ArrowRight, RotateCcw, Save, ExternalLink, CheckCircle, AlertCircle, FolderOpen, FilePlus, CircleHelp, MoreHorizontal } from 'lucide-react'
 
 const TOTAL_TABS = 6
 
@@ -107,11 +107,6 @@ export default function ActionBar() {
     window.scrollTo(0, 0)
   }
 
-  const saveLabel =
-    driveStatus === 'saving' ? 'Saving…' :
-    driveStatus === 'done'   ? 'Saved!' :
-    driveStatus === 'error'  ? 'Failed' : 'Save'
-
   const SaveIcon =
     driveStatus === 'done'  ? CheckCircle :
     driveStatus === 'error' ? AlertCircle : Save
@@ -143,8 +138,16 @@ export default function ActionBar() {
               <button className="toolbar-more__item" type="button" role="menuitem" aria-label="Open inspection" title="Open inspection" onClick={handleOpenInspection}>
                 <FolderOpen className="toolbar-more__icon" aria-hidden="true" />
               </button>
-              <button className="toolbar-more__item" type="button" role="menuitem" aria-label="Export" title="Export" disabled>
-                <Upload className="toolbar-more__icon" aria-hidden="true" />
+              <button
+                className="toolbar-more__item"
+                type="button"
+                role="menuitem"
+                aria-label="Save to Google Drive"
+                title="Save to Google Drive"
+                onClick={handleSaveToDrive}
+                disabled={driveStatus === 'saving'}
+              >
+                <SaveIcon className="toolbar-more__icon" aria-hidden="true" />
               </button>
               <button className="toolbar-more__item" type="button" role="menuitem" aria-label="New inspection" title="New inspection" onClick={handleNew}>
                 <FilePlus className="toolbar-more__icon" aria-hidden="true" />
@@ -166,14 +169,13 @@ export default function ActionBar() {
           )}
         </div>
         <button
-          className={`app-button app-button--save${driveStatus === 'done' ? ' app-button--export-done' : ''}${driveStatus === 'error' ? ' app-button--export-error' : ''}`}
-          aria-label="Save to Google Drive"
-          title="Save to Google Drive"
-          onClick={handleSaveToDrive}
-          disabled={driveStatus === 'saving'}
+          className="app-button app-button--export"
+          aria-label="Export"
+          title="Export"
+          disabled
         >
-          <SaveIcon className="app-button__icon" aria-hidden="true" />
-          <span className="app-button__label">{saveLabel}</span>
+          <ExternalLink className="app-button__icon" aria-hidden="true" />
+          <span className="app-button__label">Export</span>
         </button>
         <button className="app-button app-button--help" aria-label="Help" title="Help" onClick={() => {
           setShowMore(false)
@@ -209,7 +211,7 @@ export default function ActionBar() {
               <p><Save className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Save:</strong> Save the current inspection to Google Drive.</span></p>
               <p><CircleHelp className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Help:</strong> Show this toolbar guide.</span></p>
               <p><FolderOpen className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Open:</strong> Open a saved inspection from Google Drive.</span></p>
-              <p><Upload className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Export:</strong> Reserved for exporting inspection reports.</span></p>
+              <p><ExternalLink className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Export:</strong> Reserved for exporting inspection reports.</span></p>
               <p><FilePlus className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>New:</strong> Start a new inspection form.</span></p>
               <p><RotateCcw className="toolbar-help-modal__icon" aria-hidden="true" /><span><strong>Reset:</strong> Clear all current inspection data.</span></p>
             </div>
